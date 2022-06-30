@@ -1,11 +1,11 @@
 import torch
 import argparse
 import numpy as np
-import matplotlib.pyplot as plt
 from torchsummary import summary
 from src.load_data import Data, DataTorch
 from src.model import Autoencoder
 from src.train import Operate
+from src.postprocess import plotting
 
 
 def main(args):
@@ -40,22 +40,10 @@ def main(args):
     code = torch.reshape(code, (code.shape[0], int(np.sqrt(args.code_size)), int(np.sqrt(args.code_size))))
     pred = torch.reshape(pred, (pred.shape[0], data.resolution[0], data.resolution[1]))
 
-    def plotImage(data, nRows, numDisplay, count):
-        ax = plt.subplot(nRows, numDisplay, count)
-        plt.imshow(data)
-        plt.gray()
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
+    
+    plotting(n_disp, val_data, code, pred)
 
-
-    nRows = 6
-    plt.figure(figsize=(20, 5))
-    for i in range(n_disp):
-        plotImage(data.x_val[i], nRows, n_disp, i+1)
-        plotImage(code[i], nRows, n_disp, i+1+n_disp)
-        plotImage(pred[i], nRows, n_disp, i+1+2*n_disp)
-    plt.show()
-    test = 1
+    
 
 if __name__ == "__main__":
     
