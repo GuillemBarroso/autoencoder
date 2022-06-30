@@ -3,10 +3,11 @@ import math
 
 
 class Operate(object):
-    def __init__(self, model, x_train, args):
+    def __init__(self, model, x_train, x_test, args):
         self.optimiser = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=1e-4)
         self.model = model
         self.x_train = x_train
+        self.x_test = x_test
         self.epochs = args.epochs
         self.batch_size = args.batch_size
         self.reg_coef = args.reg_coef
@@ -14,48 +15,34 @@ class Operate(object):
     def train(self):
         for t in range(self.epochs):
             print(f"Epoch {t+1}\n-------------------------------")
-            self.train_epoch()
-            self.test_epoch()
+            self.trainEpoch()
+            self.testEpoch()
         print("Training finished!")
 
-    def train_epoch(self):
+    def trainEpoch(self):
         n_batches = self.__getNumBatches()
 
         for batch in range(n_batches):
             X = self.__getBatchData(batch)
 
-            # Compute prediction and loss
             loss, loss_image, loss_reg = self.__forwardPassAndGetLoss(X)
 
-            # Backpropagation
             self.optimiser.zero_grad()
             loss.backward()
             self.optimiser.step()
 
             if batch % 100 == 0:
                 loss, current = loss.item(), batch * len(X)
-                print(f"tot_loss: {loss:>7f}, image_loss: {loss_image:>7f}, reg_loss: {loss_reg:>7f}  [{current:>5d}/{len(self.x_train):>5d}]")
+                print(f"tot_loss: {loss:>7f}, image_loss: {loss_image:>7f}, reg_loss: {loss_reg:>7f},  images: [{current:>5d}/{len(self.x_train):>5d}]")
 
-    def test_epoch(self):
-        n_batches = self.__getNumBatches()
-        test_loss = 0
-        test_loss_image = 0
-        test_loss_reg = 0
-
+    def testEpoch(self):
         with torch.no_grad():
-            for batch in range(n_batches):
-                X = self.__getBatchData(batch)
+            loss, loss_image, loss_reg = self.__forwardPassAndGetLoss(self.x_test.data)
+            test_loss = loss
+            test_loss_image = loss_image
+            test_loss_reg = loss_reg
 
-                # Compute prediction and loss
-                loss, loss_image, loss_reg = self.__forwardPassAndGetLoss(X)
-                test_loss += loss
-                test_loss_image += loss_image
-                test_loss_reg += loss_reg
-
-        test_loss /= n_batches
-        test_loss_image /= n_batches
-        test_loss_reg /= n_batches
-        print(f"Test Error: \n Avg tot_loss: {test_loss:>8f} Avg image_loss: {test_loss_image:>8f} Avg reg_loss: {test_loss_reg:>8f} \n")
+        print(f"Test Error: \ntot_loss: {test_loss:>8f}, image_loss: {test_loss_image:>8f}, reg_loss: {test_loss_reg:>8f} \n")
 
     def __getNumBatches(self):
         return math.ceil(len(self.x_train)/self.batch_size)

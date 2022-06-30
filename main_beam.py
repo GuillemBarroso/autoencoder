@@ -17,7 +17,7 @@ def main(args):
     model = Autoencoder(data, args)
     summary(model, data.resolution)
 
-    Operate(model, x_train, args).train()
+    Operate(model, x_train, x_test, args).train()
 
     # Make predictions
     n_disp = 6
