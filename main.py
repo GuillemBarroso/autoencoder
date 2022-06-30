@@ -9,7 +9,7 @@ from src.postprocess import plotting
 
 
 def main(args):
-    data = Data('beam_homog')
+    data = Data(args.dataset)
     x_train = DataTorch(data.x_train)
     x_val = DataTorch(data.x_val)
     x_test = DataTorch(data.x_test)
@@ -17,14 +17,16 @@ def main(args):
     model = Autoencoder(data, args)
     summary(model, data.resolution)
 
-    Operate(model, x_train, x_test, args).train()
-
+    Operate(model, x_train, x_val, args).train()
+    
     # Make predictions
     n_disp = 6
-    val_data = x_val[:n_disp,:,:]
+    if n_disp > len(x_test): n_disp = len(x_test)
+    x_test = x_test[:n_disp,:,:]
+    img_test = data.imgTestNames[:n_disp]
 
     with torch.no_grad():
-        pred, code = model(val_data)
+        pred, code = model(x_test)
 
     # Detect dimensionality
     latent = np.sum(code.numpy()**2, axis=0)**0.5
@@ -39,24 +41,24 @@ def main(args):
 
     code = torch.reshape(code, (code.shape[0], int(np.sqrt(args.code_size)), int(np.sqrt(args.code_size))))
     pred = torch.reshape(pred, (pred.shape[0], data.resolution[0], data.resolution[1]))
-
     
-    plotting(n_disp, val_data, code, pred)
-
+    plotting(x_test, code, pred, img_test)
     
 
 if __name__ == "__main__":
-    
     parser = argparse.ArgumentParser(description='Autoencoder for image compression')
 
+    # General parameters
+    parser.add_argument('--dataset', default='beam_homog_test', type=str, help='name of the dataset')
+
     # Training parameters
-    parser.add_argument('--epochs', default=50, type=int, help='number of training epochs')
+    parser.add_argument('--epochs', default=200, type=int, help='number of training epochs')
     parser.add_argument('--reg_coef', default=1e-4, type=float, help='regularisation coefficient in the code layer')
-    parser.add_argument('--batch_size', default=200, type=int, help='batch size')
+    parser.add_argument('--batch_size', default=50, type=int, help='batch size')
     parser.add_argument('--learning_rate', default=1e-3, type=float, help='training learning rate ')
     
     # Architecture parameters
-    parser.add_argument('--n_neurons', default=400, type=int, help='number of neurons per hidden layer')
+    parser.add_argument('--n_neurons', default=200, type=int, help='number of neurons per hidden layer')
     parser.add_argument('--code_size', default=25, type=int, help='number of neurons in the code layer')
 
     args = parser.parse_args()

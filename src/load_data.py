@@ -57,14 +57,14 @@ class Data(Dataset):
             if count % 100 == 0:
                 print('Reading file {}/{}'.format(count, len(files)))
             if file[-3:] == 'txt':
-                values = self.extractValuesFromFile(file)
-                pixels = self.computePixelsFromP0values(values)
+                values = self.__extractValuesFromFile(file)
+                pixels = self.__computePixelsFromP0values(values)
                 data.append(pixels)
                 names.append(file)
 
         return np.asarray(data), np.asarray(names)
 
-    def extractValuesFromFile(self, file):
+    def __extractValuesFromFile(self, file):
         aux = open('{}/{}'.format(self.mesh.dir, file),"r")
         lines = aux.readlines()
         values = []
@@ -80,7 +80,7 @@ class Data(Dataset):
         aux.close()
         return values[1:]
     
-    def computePixelsFromP0values(self, values):
+    def __computePixelsFromP0values(self, values):
         # Create data array with pixel values combining element values in the same pixel
         # Assume ordering of elements coming from FreeFEM and structured mesh 
         # (first row first with all elements ordered from left to right)

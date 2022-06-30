@@ -55,10 +55,10 @@ class Operate(object):
 
     def __forwardPassAndGetLoss(self, X):
         pred, code = self.model(X)
-        loss_image, loss_reg = self.__computeLosses(pred, X, code)
+        loss_image, loss_reg = self.computeLosses(pred, X, code)
         return loss_image + self.reg_coef*loss_reg, loss_image, loss_reg
 
-    def __computeLosses(self, pred, input, code):
+    def computeLosses(self, pred, input, code):
         pred = torch.reshape(pred, input.shape)
         loss_image = torch.mean((pred-input)**2)
         loss_reg = torch.mean(torch.abs(code))
