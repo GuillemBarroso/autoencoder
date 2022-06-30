@@ -39,3 +39,19 @@ def getMusFromImgName(imgName):
 def addPlotNames(plotNames):
     for i, plotName in enumerate(reversed(plotNames)):
         plt.text(0.1, 0.12+0.23*i, plotName, fontsize=12, transform=plt.gcf().transFigure, rotation=90)
+
+def plotTraining(epochs, loss_train, loss_val):
+    plt.plot(range(epochs), loss_train)
+    plt.plot(range(1,epochs+1), loss_val)
+    plt.title('Training losses')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train_loss', 'val_loss'], loc='upper right')
+    ax = plt.gca()
+    lims = ax.get_ylim()
+    if lims[1] > 0.5:
+        limsPlot = [lims[0], 0.5]
+    else:
+        limsPlot = lims
+    ax.set_ylim(limsPlot)
+    plt.show()
