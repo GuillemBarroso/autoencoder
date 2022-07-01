@@ -52,10 +52,11 @@ if __name__ == "__main__":
     parser.add_argument('--dataset', default='beam_homog_test', type=str, help='name of the dataset')
 
     # Training parameters
-    parser.add_argument('--epochs', default=200, type=int, help='number of training epochs')
+    parser.add_argument('--epochs', default=300, type=int, help='number of training epochs')
     parser.add_argument('--reg_coef', default=1e-4, type=float, help='regularisation coefficient in the code layer')
     parser.add_argument('--batch_size', default=50, type=int, help='batch size')
     parser.add_argument('--learning_rate', default=1e-3, type=float, help='training learning rate ')
+    parser.add_argument('--early_stop_patience', default=10, type=float, help='window of epochs to check if the validation loss decreases')
     
     # Architecture parameters
     parser.add_argument('--n_neurons', default=200, type=int, help='number of neurons per hidden layer')

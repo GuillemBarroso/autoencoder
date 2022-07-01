@@ -11,15 +11,21 @@ class Operate(object):
         self.epochs = args.epochs
         self.batch_size = args.batch_size
         self.reg_coef = args.reg_coef
+        self.early_stop_patience = args.early_stop_patience
         self.loss_train = []
         self.loss_val = []
+        self.best_loss_val = None
+        self.stop_training = None
+
 
     def train(self):
         for e in range(self.epochs):
             print(f"Epoch {e+1}\n-------------------------------")
             self.__trainEpoch()
             self.__testEpoch()
-            self.__checkEarlyStop()
+            self.__checkEarlyStop(e)
+            if self.stop_training:
+                break
         print("Training finished!")
         plotTraining(e+1, self.loss_train, self.loss_val)
 
@@ -39,7 +45,7 @@ class Operate(object):
                 loss, current = loss.item(), batch * len(X)
                 print(f"tot_loss: {loss:>7f}, image_loss: {loss_image:>7f}, reg_loss: {loss_reg:>7f},  images: [{current:>5d}/{len(self.x_train):>5d}]")
         self.loss_train.append(loss)
-        
+
     def __testEpoch(self):
         with torch.no_grad():
             loss, loss_image, loss_reg = self.__forwardPassAndGetLoss(self.x_val.data)
@@ -60,16 +66,21 @@ class Operate(object):
 
     def __forwardPassAndGetLoss(self, X):
         pred, code = self.model(X)
-        loss_image, loss_reg = self.computeLosses(pred, X, code)
+        loss_image, loss_reg = self.__computeLosses(pred, X, code)
         return loss_image + self.reg_coef*loss_reg, loss_image, loss_reg
 
-    def computeLosses(self, pred, input, code):
+    def __computeLosses(self, pred, input, code):
         pred = torch.reshape(pred, input.shape)
         loss_image = torch.mean((pred-input)**2)
         loss_reg = torch.mean(torch.abs(code))
         return loss_image, loss_reg
 
-    def __checkEarlyStop(self):
-        pass
+    def __checkEarlyStop(self, e):
+        if e >= self.early_stop_patience:
+            self.best_loss_val = min(self.loss_val)
+            loss_val_window = self.loss_val[-self.early_stop_patience:]
+            if min(loss_val_window) > self.best_loss_val: 
+                self.stop_training = True
+                print('Early stop triggered')
 
 
