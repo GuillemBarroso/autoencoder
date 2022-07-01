@@ -3,8 +3,8 @@ import argparse
 import numpy as np
 from torchsummary import summary
 from src.load_data import Data, DataTorch
-from src.model import Autoencoder
-from src.train import Training
+from arch import Autoencoder
+from model import Model
 from src.postprocess import plotting, plotShow
 
 
@@ -17,7 +17,7 @@ def main(args):
     model = Autoencoder(data, args)
     summary(model, data.resolution)
 
-    Training(model, x_train, x_val, args).train()
+    Model(model, x_train, x_val, x_test, args).train()
     
     # Make predictions
     n_disp = 6
