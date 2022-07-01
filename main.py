@@ -3,8 +3,8 @@ import argparse
 import numpy as np
 from torchsummary import summary
 from src.load_data import Data, DataTorch
-from arch import Autoencoder
-from model import Model
+from src.arch import Autoencoder
+from src.model import Model
 from src.postprocess import plotting, plotShow
 
 
@@ -17,7 +17,7 @@ def main(args):
     model = Autoencoder(data, args)
     summary(model, data.resolution)
 
-    Model(model, x_train, x_val, x_test, args).train()
+    Model(model, x_train, x_val, args).train()
     
     # Make predictions
     n_disp = 6
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     parser.add_argument('--dataset', default='beam_homog_test', type=str, help='name of the dataset')
 
     # Training parameters
-    parser.add_argument('--epochs', default=500, type=int, help='number of training epochs')
+    parser.add_argument('--epochs', default=300, type=int, help='number of training epochs')
     parser.add_argument('--reg_coef', default=1e-4, type=float, help='regularisation coefficient in the code layer')
     parser.add_argument('--batch_size', default=50, type=int, help='batch size')
     parser.add_argument('--learning_rate', default=1e-3, type=float, help='training learning rate ')

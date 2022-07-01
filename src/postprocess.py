@@ -1,6 +1,13 @@
 import matplotlib.pyplot as plt
 import torch
-from src.image_naming import getParamsFromImageName, getMusFromParams
+import pandas as pd
+import dataframe_image as dfi
+from src.image_naming import getMusFromImgName
+
+def summaryInfo(data, name):
+    df = pd.DataFrame(data, columns=['Parameter', 'Value'])
+    print(df)
+    dfi.export(df, name)
 
 def plotImage(data, nRows, n_disp, count):
         ax = plt.subplot(nRows, n_disp, count)
@@ -30,10 +37,6 @@ def plotting(input, code, pred, img_names):
         ax.text(0.15,0.1,'loss = {}'.format(imageError))
         ax.axis('off')
     addPlotNames(plotNames)
-
-def getMusFromImgName(imgName):
-        Fh, Fv, loc, pos = getParamsFromImageName(imgName)
-        return getMusFromParams(Fh, Fv, loc, pos)
 
 def addPlotNames(plotNames):
     for i, plotName in enumerate(reversed(plotNames)):

@@ -1,3 +1,7 @@
+def getMusFromImgName(imgName):
+        Fh, Fv, loc, pos = getParamsFromImageName(imgName)
+        return getMusFromParams(Fh, Fv, loc, pos)
+
 def getMusFromParams(Fh, Fv, loc, pos):
         if Fh == 0 and Fv == 1:
             mu2 = 0
@@ -130,7 +134,6 @@ def getMusFromParams(Fh, Fv, loc, pos):
             mu1 = 3 - pos
 
         return mu1, mu2
-
 
 def getParamsFromImageName(name):
         # Get indexes of the two underscores

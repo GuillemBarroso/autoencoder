@@ -1,6 +1,8 @@
 import torch
 import math
-from src.postprocess import plotTraining
+import timeit
+from src.postprocess import plotTraining, summaryInfo
+
 
 class Model(object):
     def __init__(self, model, x_train, x_val, args):
@@ -13,11 +15,33 @@ class Model(object):
         self.reg_coef = args.reg_coef
         self.early_stop_patience = args.early_stop_patience
         self.loss_train = []
+        self.loss_train_image = []
+        self.loss_train_reg = []
         self.loss_val = []
+        self.loss_val_image = []
+        self.loss_val_reg = []
         self.best_loss_val = None
         self.stop_training = None
+        self.train_time = None
 
     def train(self):
+        def __summary():
+            name = 'results/trainTable.png'
+            data = [['epochs', self.epochs],
+            ['batch size', self.batch_size],
+            ['early stop patience', '{} epochs'.format(self.early_stop_patience)],
+            ['training time', '{:.2}s/{:.1}min'.format(self.train_time, self.train_time/60)],
+            ['regularisation coef', '{:.0e}'.format(self.reg_coef)],
+            ['total train loss', '{:.2}'.format(self.loss_train[-1])],
+            ['image train loss', '{:.2}'.format(self.loss_train_image[-1])],
+            ['reg train loss', '{:.2}'.format(self.loss_train_reg[-1])],
+            ['total val loss', '{:.2}'.format(self.loss_val[-1])],
+            ['image val loss', '{:.2}'.format(self.loss_val_image[-1])],
+            ['reg val loss', '{:.2}'.format(self.loss_val_reg[-1])],
+            ]
+            summaryInfo(data, name)
+
+        start = timeit.default_timer()
         for e in range(self.epochs):
             print(f"Epoch {e+1}\n-------------------------------")
             self.__trainEpoch()
@@ -25,8 +49,9 @@ class Model(object):
             self.__checkEarlyStop(e)
             if self.stop_training:
                 break
-        print("Training finished!")
+        self.train_time = timeit.default_timer() - start
         plotTraining(e+1, self.loss_train, self.loss_val)
+        __summary()
 
     def __trainEpoch(self):
         n_batches = self.__getNumBatches()
@@ -44,11 +69,15 @@ class Model(object):
                 loss, current = loss.item(), batch * len(X)
                 print(f"tot_loss: {loss:>7f}, image_loss: {loss_image:>7f}, reg_loss: {loss_reg:>7f},  images: [{current:>5d}/{len(self.x_train):>5d}]")
         self.loss_train.append(loss)
+        self.loss_train_image.append(loss_image)
+        self.loss_train_reg.append(loss_reg)
 
     def __testEpoch(self):
         with torch.no_grad():
             loss, loss_image, loss_reg = self.__evaluate(self.x_val.data)
             self.loss_val.append(loss)
+            self.loss_val_image.append(loss_image)
+            self.loss_val_reg.append(loss_reg)
 
         print(f"Test Error: \ntot_loss: {loss:>8f}, image_loss: {loss_image:>8f}, reg_loss: {loss_reg:>8f} \n")
 
