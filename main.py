@@ -4,8 +4,8 @@ import numpy as np
 from torchsummary import summary
 from src.load_data import Data, DataTorch
 from src.model import Autoencoder
-from src.train import Operate
-from src.postprocess import plotting
+from src.train import Training
+from src.postprocess import plotting, plotShow
 
 
 def main(args):
@@ -17,7 +17,7 @@ def main(args):
     model = Autoencoder(data, args)
     summary(model, data.resolution)
 
-    Operate(model, x_train, x_val, args).train()
+    Training(model, x_train, x_val, args).train()
     
     # Make predictions
     n_disp = 6
@@ -43,6 +43,7 @@ def main(args):
     pred = torch.reshape(pred, (pred.shape[0], data.resolution[0], data.resolution[1]))
     
     plotting(x_test, code, pred, img_test)
+    plotShow()
     
 
 if __name__ == "__main__":
@@ -52,14 +53,14 @@ if __name__ == "__main__":
     parser.add_argument('--dataset', default='beam_homog_test', type=str, help='name of the dataset')
 
     # Training parameters
-    parser.add_argument('--epochs', default=300, type=int, help='number of training epochs')
+    parser.add_argument('--epochs', default=500, type=int, help='number of training epochs')
     parser.add_argument('--reg_coef', default=1e-4, type=float, help='regularisation coefficient in the code layer')
     parser.add_argument('--batch_size', default=50, type=int, help='batch size')
     parser.add_argument('--learning_rate', default=1e-3, type=float, help='training learning rate ')
-    parser.add_argument('--early_stop_patience', default=10, type=float, help='window of epochs to check if the validation loss decreases')
+    parser.add_argument('--early_stop_patience', default=50, type=float, help='window of epochs to check if the validation loss decreases')
     
     # Architecture parameters
-    parser.add_argument('--n_neurons', default=200, type=int, help='number of neurons per hidden layer')
+    parser.add_argument('--n_neurons', default=70, type=int, help='number of neurons per hidden layer')
     parser.add_argument('--code_size', default=25, type=int, help='number of neurons in the code layer')
 
     args = parser.parse_args()

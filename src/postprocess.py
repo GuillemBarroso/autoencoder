@@ -30,7 +30,6 @@ def plotting(input, code, pred, img_names):
         ax.text(0.15,0.1,'loss = {}'.format(imageError))
         ax.axis('off')
     addPlotNames(plotNames)
-    plt.show()
 
 def getMusFromImgName(imgName):
         Fh, Fv, loc, pos = getParamsFromImageName(imgName)
@@ -54,4 +53,6 @@ def plotTraining(epochs, loss_train, loss_val):
     else:
         limsPlot = lims
     ax.set_ylim(limsPlot)
+
+def plotShow():
     plt.show()

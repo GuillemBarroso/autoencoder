@@ -2,7 +2,7 @@ import torch
 import math
 from src.postprocess import plotTraining
 
-class Operate(object):
+class Training(object):
     def __init__(self, model, x_train, x_val, args):
         self.optimiser = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=1e-4)
         self.model = model
