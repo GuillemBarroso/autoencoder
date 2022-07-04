@@ -16,12 +16,12 @@ class Autoencoder(nn.Module):
             # nn.Linear(args.n_neurons, args.n_neurons),
             # nn.ReLU(),
             nn.Linear(args.n_neurons, args.code_size),
-            nn.ReLU(),
+            # nn.ReLU(),
         )
 
         self.decoder = nn.Sequential(
             nn.Linear(args.code_size, args.n_neurons),
-            # nn.ReLU(),
+            nn.ReLU(),
             # nn.Linear(args.n_neurons, args.n_neurons),
             # nn.ReLU(),
             # nn.Linear(args.n_neurons, args.n_neurons),
@@ -36,3 +36,6 @@ class Autoencoder(nn.Module):
         code = self.encoder(x)
         x_nn = self.decoder(code)
         return x_nn, code
+
+    def decode(self, x):
+        return self.decoder(x)

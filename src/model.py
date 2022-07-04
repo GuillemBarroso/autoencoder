@@ -2,6 +2,7 @@ import torch
 import math
 import timeit
 from src.postprocess import plotTraining, summaryInfo
+from src.calcs import computeLosses
 
 
 class Model(object):
@@ -66,18 +67,17 @@ class Model(object):
             self.optimiser.step()
 
             if batch % 100 == 0:
-                loss, current = loss.item(), batch * len(X)
-                print(f"tot_loss: {loss:>7f}, image_loss: {loss_image:>7f}, reg_loss: {loss_reg:>7f},  images: [{current:>5d}/{len(self.x_train):>5d}]")
-        self.loss_train.append(loss)
-        self.loss_train_image.append(loss_image)
-        self.loss_train_reg.append(loss_reg)
+                print(f"tot_loss: {loss.item():>7f}, image_loss: {loss_image.item():>7f}, reg_loss: {loss_reg.item():>7f},  images: [{batch*len(X):>5d}/{len(self.x_train):>5d}]")
+        self.loss_train.append(loss.item())
+        self.loss_train_image.append(loss_image.item())
+        self.loss_train_reg.append(loss_reg.item())
 
     def __testEpoch(self):
         with torch.no_grad():
             loss, loss_image, loss_reg = self.__evaluate(self.x_val.data)
-            self.loss_val.append(loss)
-            self.loss_val_image.append(loss_image)
-            self.loss_val_reg.append(loss_reg)
+        self.loss_val.append(loss)
+        self.loss_val_image.append(loss_image)
+        self.loss_val_reg.append(loss_reg)
 
         print(f"Test Error: \ntot_loss: {loss:>8f}, image_loss: {loss_image:>8f}, reg_loss: {loss_reg:>8f} \n")
 
@@ -92,14 +92,8 @@ class Model(object):
 
     def __evaluate(self, X):
         pred, code = self.model(X)
-        loss_image, loss_reg = self.__computeLosses(pred, X, code)
-        return loss_image + self.reg_coef*loss_reg, loss_image, loss_reg
-
-    def __computeLosses(self, pred, input, code):
-        pred = torch.reshape(pred, input.shape)
-        loss_image = torch.mean((pred-input)**2)
-        loss_reg = torch.mean(torch.abs(code))
-        return loss_image, loss_reg
+        loss_tot, loss_image, loss_reg = computeLosses(pred, X, code, self.reg_coef)
+        return loss_tot, loss_image, loss_reg
 
     def __checkEarlyStop(self, e):
         if e >= self.early_stop_patience:
