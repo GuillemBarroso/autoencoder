@@ -34,6 +34,7 @@ class Model(object):
             data = [['epochs', self.epochs],
             ['batch size', self.batch_size],
             ['early stop patience', '{} epochs'.format(self.early_stop_patience)],
+            ['early stop tol', '{} epochs'.format(self.early_stop_tol)],
             ['training time', '{:.2}s/{:.1}min'.format(self.train_time, self.train_time/60)],
             ['regularisation coef', '{:.0e}'.format(self.reg_coef)],
             ['total train loss', '{:.2}'.format(self.loss_train[-1])],
