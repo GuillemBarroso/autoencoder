@@ -12,6 +12,7 @@ class Predict(object):
         self.code_size = args.code_size
         if n_disp > len(x_test): n_disp = len(x_test)
         self.n_disp = n_disp
+        self.trunc_threshold = args.trunc_threshold
 
         self.loss_tot = None
         self.loss_image = None
@@ -44,7 +45,7 @@ class Predict(object):
             self.loss_tot, self.loss_image, self.loss_reg = computeLosses(pred, self.x_test.data, code, self.reg_coef)
 
         active_code, self.active_code_size, self.avg_code_mag = codeInfo(code)
-        code_trunc, self.latent_trunc_size  = truncCode(code, self.code_size)
+        code_trunc, self.latent_trunc_size  = truncCode(code, self.code_size, self.trunc_threshold)
         print('Code for test image 1: ', code[0])
         print('Total test loss before truncation: ',self.loss_tot)
         print('Truncated code for test image 1: ',code_trunc[0])
