@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     # General parameters
     parser.add_argument('--dataset', default='beam_homog_test', type=str, help='name of the dataset')
-    parser.add_argument('--trunc_threshold', default=0.1, type=float, help='threshold to truncate the code after training')
+    parser.add_argument('--trunc_threshold', default=0.5, type=float, help='threshold to truncate the code after training')
 
     # Training parameters
     parser.add_argument('--epochs', default=300, type=int, help='number of training epochs')
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', default=50, type=int, help='batch size')
     parser.add_argument('--learning_rate', default=1e-3, type=float, help='training learning rate ')
     parser.add_argument('--early_stop_patience', default=50, type=int, help='number of epochs that the early stopping criteria will wait before stopping training')
-    parser.add_argument('--early_stop_tol', default=1e-4, type=float, help='tolerance that the early stopping will consider')
+    parser.add_argument('--early_stop_tol', default=1e-3, type=float, help='tolerance that the early stopping will consider')
     
     # Architecture parameters
     parser.add_argument('--n_neurons', default=200, type=int, help='number of neurons per hidden layer')
