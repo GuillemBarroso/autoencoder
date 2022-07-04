@@ -21,7 +21,7 @@ class Predict(object):
         self.loss_tot_trunc = None
         self.loss_image_trunc = None
         self.loss_reg_trunc = None
-        self.active_code_flag = None
+        self.zero_code_flag = None
         self.trunc_code_flag = None
 
     def evaluate(self):
@@ -46,7 +46,7 @@ class Predict(object):
             pred, code = self.model(self.x_test.data)
             self.loss_tot, self.loss_image, self.loss_reg = computeLosses(pred, self.x_test.data, code, self.reg_coef)
 
-        self.active_code_flag, self.active_code_size, self.avg_code_mag = codeInfo(code)
+        self.zero_code_flag, self.active_code_size, self.avg_code_mag = codeInfo(code)
         self.trunc_code_flag, code_trunc, self.latent_trunc_size  = truncCode(code, self.code_size, self.trunc_threshold)
         print('Code for test image 1: ', code[0])
         print('Total test loss before truncation: ',self.loss_tot)
@@ -69,7 +69,7 @@ class Predict(object):
         pred_trunc = reshape(pred_trunc, pred_dim)
         
         __summary()
-        plotting(x_test, code, pred, code_trunc, pred_trunc, img_test, self.active_code_flag, self.trunc_code_flag)
+        plotting(x_test, code, pred, code_trunc, pred_trunc, img_test, self.zero_code_flag, self.trunc_code_flag)
         plotShow()
 
         

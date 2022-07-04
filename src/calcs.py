@@ -12,9 +12,10 @@ def computeLosses(pred, input, code, reg_coef):
 def codeInfo(code):
             avg = np.true_divide(code.sum(0), code.shape[0])
             active_code_flag = np.nonzero(avg)
+            zero_code_flag = np.where(avg==0)[0]
             code_size = len(active_code_flag)
             avg_code_mag = np.true_divide(abs(avg).sum(),(avg!=0).sum())
-            return active_code_flag, code_size, avg_code_mag
+            return zero_code_flag, code_size, avg_code_mag
 
 def truncCode(code, code_size, threshold=0.1):
     # Detect dimensionality
@@ -26,11 +27,10 @@ def truncCode(code, code_size, threshold=0.1):
 
     # Truncate code
     for i in range(code_size):
-        if rel_latent[i] <= threshold: 
+        if 0.0 < rel_latent[i] <= threshold: 
+            trunc_code_flag.append(i)
             for k in range(code.shape[0]):
                 trunc_code[k][i] = 0
-        else:
-            trunc_code_flag.append(i)
             
-    latent_trunc_size = len(trunc_code_flag)
+    latent_trunc_size = code_size - len(trunc_code_flag)
     return trunc_code_flag, trunc_code, latent_trunc_size

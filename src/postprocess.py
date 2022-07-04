@@ -25,11 +25,11 @@ def plotZeroCode(code_size, plot_code, colour):
     count = 0
     for y in range(code_size):
         for x in range(code_size):  
-            if not count in plot_code:
+            if count in plot_code:
                 plt.scatter(x,y, color=colour,s=5)
             count += 1
 
-def plotting(input, code, pred, code_trunc, pred_trunc, img_names, active_code, trunc_code):
+def plotting(input, code, pred, code_trunc, pred_trunc, img_names, zero_code, trunc_code):
     nRows = 6
     plotNames = ['X', 'code', 'X_NN', 'code trunc', 'X_NN trunc', 'fig data']
     n_disp = len(input)
@@ -37,9 +37,10 @@ def plotting(input, code, pred, code_trunc, pred_trunc, img_names, active_code, 
     for i in range(n_disp):
         plotImage(input[i], nRows, n_disp, i+1)
         plotImage(code[i], nRows, n_disp, i+1+n_disp)
-        plotZeroCode(len(code.data[0]), active_code, 'blue')
+        plotZeroCode(len(code.data[0]), zero_code, 'blue')
         plotImage(pred[i], nRows, n_disp, i+1+2*n_disp)
         plotImage(code_trunc[i], nRows, n_disp, i+1+3*n_disp)
+        plotZeroCode(len(code.data[0]), zero_code, 'blue')
         plotZeroCode(len(code.data[0]), trunc_code, 'red')
         plotImage(pred_trunc[i], nRows, n_disp, i+1+4*n_disp)
 

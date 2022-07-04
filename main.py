@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     # General parameters
     parser.add_argument('--dataset', default='beam_homog_test', type=str, help='name of the dataset')
-    parser.add_argument('--trunc_threshold', default=0.5, type=float, help='threshold to truncate the code after training')
+    parser.add_argument('--trunc_threshold', default=0.1, type=float, help='threshold to truncate the code after training')
 
     # Training parameters
     parser.add_argument('--epochs', default=300, type=int, help='number of training epochs')
