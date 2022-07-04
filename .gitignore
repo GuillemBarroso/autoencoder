@@ -5,5 +5,6 @@ Icon?
 /.vscode
 
 results/*
+results_docxs/*
 data/*
 !data/beam_homog_test

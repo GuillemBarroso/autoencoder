@@ -15,6 +15,7 @@ class Model(object):
         self.batch_size = args.batch_size
         self.reg_coef = args.reg_coef
         self.early_stop_patience = args.early_stop_patience
+        self.early_stop_tol = args.early_stop_tol
         self.loss_train = []
         self.loss_train_image = []
         self.loss_train_reg = []
@@ -24,6 +25,8 @@ class Model(object):
         self.best_loss_val = None
         self.stop_training = None
         self.train_time = None
+        self.early_stop_count = 0
+        self.loss_prev_best = self.early_stop_tol*1e15
 
     def train(self):
         def __summary():
@@ -47,7 +50,7 @@ class Model(object):
             print(f"Epoch {e+1}\n-------------------------------")
             self.__trainEpoch()
             self.__testEpoch()
-            self.__checkEarlyStop(e)
+            self.__checkEarlyStop()
             if self.stop_training:
                 break
         self.train_time = timeit.default_timer() - start
@@ -95,12 +98,17 @@ class Model(object):
         loss_tot, loss_image, loss_reg = computeLosses(pred, X, code, self.reg_coef)
         return loss_tot, loss_image, loss_reg
 
-    def __checkEarlyStop(self, e):
-        if e >= self.early_stop_patience:
-            self.best_loss_val = min(self.loss_val)
-            loss_val_window = self.loss_val[-self.early_stop_patience:]
-            if min(loss_val_window) > self.best_loss_val: 
-                self.stop_training = True
-                print('Early stop triggered')
+    def __checkEarlyStop(self):
+        loss_current = self.loss_val[-1]
+        
+        if self.loss_prev_best - loss_current < self.early_stop_tol:
+            self.early_stop_count += 1 
+        else:
+            self.early_stop_count = 0
+            self.loss_prev_best = loss_current
+
+        if self.early_stop_count == self.early_stop_patience:
+            self.stop_training = True
+            print('Early stop triggered')
 
 
