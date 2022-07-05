@@ -8,6 +8,7 @@ from src.calcs import computeLosses
 class Model(object):
     def __init__(self, model, x_train, x_val, args):
         self.optimiser = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=1e-4)
+        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimiser, milestones=args.epoch_milestone, gamma=args.lr_red_coef)
         self.model = model
         self.x_train = x_train
         self.x_val = x_val
@@ -69,6 +70,7 @@ class Model(object):
             self.optimiser.zero_grad()
             loss.backward()
             self.optimiser.step()
+            self.scheduler.step()
 
             if batch % 100 == 0:
                 print(f"tot_loss: {loss.item():>7f}, image_loss: {loss_image.item():>7f}, reg_loss: {loss_reg.item():>7f},  images: [{batch*len(X):>5d}/{len(self.x_train):>5d}]")
