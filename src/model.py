@@ -7,8 +7,9 @@ from src.calcs import computeLosses
 
 class Model(object):
     def __init__(self, model, x_train, x_val, args):
-        self.optimiser = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=1e-4)
-        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimiser, milestones=args.epoch_milestone, gamma=args.lr_red_coef)
+        self.learning_rate = args.learning_rate
+        self.epoch_milestone = args.epoch_milestone
+        self.lr_red_coef = args.lr_red_coef
         self.model = model
         self.x_train = x_train
         self.x_val = x_val
@@ -28,6 +29,8 @@ class Model(object):
         self.train_time = None
         self.early_stop_count = 0
         self.loss_prev_best = self.early_stop_tol*1e15
+        self.optimiser = torch.optim.Adam(model.parameters(), lr=self.learning_rate, weight_decay=1e-4)
+        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimiser, milestones=self.epoch_milestone, gamma=self.lr_red_coef)
 
     def train(self):
         def __summary():
@@ -35,7 +38,10 @@ class Model(object):
             data = [['epochs', self.epochs],
             ['batch size', self.batch_size],
             ['early stop patience', '{} epochs'.format(self.early_stop_patience)],
-            ['early stop tol', '{} epochs'.format(self.early_stop_tol)],
+            ['early stop tol', '{:.0e} epochs'.format(self.early_stop_tol)],
+            ['initial learning rate', '{:.0e}'.format(self.learning_rate)],
+            ['epochs lr reduction', '{}'.format(self.epoch_milestone)],
+            ['lr reduction factor', '{:.0e}'.format(self.lr_red_coef)],
             ['training time', '{:.2}s/{:.1}min'.format(self.train_time, self.train_time/60)],
             ['regularisation coef', '{:.0e}'.format(self.reg_coef)],
             ['total train loss', '{:.2}'.format(self.loss_train[-1])],
@@ -51,7 +57,7 @@ class Model(object):
         for e in range(self.epochs):
             print(f"Epoch {e+1}\n-------------------------------")
             self.__trainEpoch()
-            self.__testEpoch()
+            self.__valEpoch()
             self.__checkEarlyStop()
             if self.stop_training:
                 break
@@ -78,14 +84,14 @@ class Model(object):
         self.loss_train_image.append(loss_image.item())
         self.loss_train_reg.append(loss_reg.item())
 
-    def __testEpoch(self):
+    def __valEpoch(self):
         with torch.no_grad():
             loss, loss_image, loss_reg = self.__evaluate(self.x_val.data)
         self.loss_val.append(loss)
         self.loss_val_image.append(loss_image)
         self.loss_val_reg.append(loss_reg)
 
-        print(f"Test Error: \ntot_loss: {loss:>8f}, image_loss: {loss_image:>8f}, reg_loss: {loss_reg:>8f} \n")
+        print(f"Val error: \ntot_loss: {loss:>8f}, image_loss: {loss_image:>8f}, reg_loss: {loss_reg:>8f} \n")
 
     def __getNumBatches(self):
         return math.ceil(len(self.x_train)/self.batch_size)

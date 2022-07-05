@@ -17,7 +17,7 @@ def codeInfo(code):
             avg_code_mag = np.true_divide(abs(avg).sum(),(avg!=0).sum())
             return zero_code_flag, code_size, avg_code_mag
 
-def truncCode(code, code_size, threshold=0.1):
+def truncCode(code, code_size, active_code_size, threshold=0.1):
     # Detect dimensionality
     latent = np.sum(code.numpy()**2, axis=0)**0.5
     rel_latent = latent/np.max(latent)
@@ -32,5 +32,5 @@ def truncCode(code, code_size, threshold=0.1):
             for k in range(code.shape[0]):
                 trunc_code[k][i] = 0
             
-    latent_trunc_size = code_size - len(trunc_code_flag)
+    latent_trunc_size = active_code_size - len(trunc_code_flag)
     return trunc_code_flag, trunc_code, latent_trunc_size

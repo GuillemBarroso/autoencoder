@@ -47,7 +47,7 @@ class Predict(object):
             self.loss_tot, self.loss_image, self.loss_reg = computeLosses(pred, self.x_test.data, code, self.reg_coef)
 
         self.zero_code_flag, self.active_code_size, self.avg_code_mag = codeInfo(code)
-        self.trunc_code_flag, code_trunc, self.latent_trunc_size  = truncCode(code, self.code_size, self.trunc_threshold)
+        self.trunc_code_flag, code_trunc, self.latent_trunc_size  = truncCode(code, self.code_size, self.active_code_size, self.trunc_threshold)
         print('Code for test image 1: ', code[0])
         print('Total test loss before truncation: ',self.loss_tot)
         print('Truncated code for test image 1: ',code_trunc[0])

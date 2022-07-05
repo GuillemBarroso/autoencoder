@@ -30,12 +30,11 @@ if __name__ == "__main__":
     parser.add_argument('--epochs', '-e', default=300, type=int, help='number of training epochs')
     parser.add_argument('--reg_coef', '-reg', default=1e-4, type=float, help='regularisation coefficient in the code layer')
     parser.add_argument('--batch_size', '-bs', default=50, type=int, help='batch size')
-    parser.add_argument('--learning_rate', '-lr', default=1e-3, type=float, help='training learning rate ')
+    parser.add_argument('--learning_rate', '-lr', default=1e-2, type=float, help='training learning rate ')
     parser.add_argument('--early_stop_patience', '-pat', default=50, type=int, help='number of epochs that the early stopping criteria will wait before stopping training')
     parser.add_argument('--early_stop_tol', '-tol', default=1e-3, type=float, help='tolerance that the early stopping will consider')
-    parser.add_argument('--epoch_milestone', '-ered', default=[150, 200], nargs='+', type=list, help='list of epochs in which learning rate will be decreased')
-    parser.add_argument('--lr_red_coef','-lrred', default=5e-1, type=float, help='learning rate reduction factor')
-
+    parser.add_argument('--epoch_milestone', '-ered', default=[50, 100], nargs='+', type=list, help='list of epochs in which learning rate will be decreased')
+    parser.add_argument('--lr_red_coef','-lrred', default=1e-1, type=float, help='learning rate reduction factor')
 
     # Architecture parameters
     parser.add_argument('--n_neurons','-n', default=200, type=int, help='number of neurons per hidden layer')
