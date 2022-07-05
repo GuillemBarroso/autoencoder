@@ -9,7 +9,7 @@ class Predict(object):
         self.x_test = x_test
         self.img_names = img_names
         self.reg_coef = args.reg_coef
-        self.code_size = args.code_size
+        self.code_size = args.layers[-1]
         if n_disp > len(x_test): n_disp = len(x_test)
         self.n_disp = n_disp
         self.trunc_threshold = args.trunc_threshold

@@ -12,7 +12,7 @@ def main(args):
     x_val = DataTorch(data.x_val)
     x_test = DataTorch(data.x_test)
 
-    model = Autoencoder(data, args)
+    model = Autoencoder(data.resolution, args)
     summary(model, data.resolution)
 
     Model(model, x_train, x_val, args).train()
@@ -30,15 +30,16 @@ if __name__ == "__main__":
     parser.add_argument('--epochs', '-e', default=300, type=int, help='number of training epochs')
     parser.add_argument('--reg_coef', '-reg', default=1e-4, type=float, help='regularisation coefficient in the code layer')
     parser.add_argument('--batch_size', '-bs', default=50, type=int, help='batch size')
-    parser.add_argument('--learning_rate', '-lr', default=1e-2, type=float, help='training learning rate ')
+    parser.add_argument('--learning_rate', '-lr', default=1e-3, type=float, help='training learning rate ')
     parser.add_argument('--early_stop_patience', '-pat', default=50, type=int, help='number of epochs that the early stopping criteria will wait before stopping training')
     parser.add_argument('--early_stop_tol', '-tol', default=1e-3, type=float, help='tolerance that the early stopping will consider')
-    parser.add_argument('--epoch_milestone', '-ered', default=[50, 100], nargs='+', type=list, help='list of epochs in which learning rate will be decreased')
+    parser.add_argument('--epoch_milestone', '-ered', default=[1e10], nargs='+', type=int, help='list of epochs in which learning rate will be decreased')
     parser.add_argument('--lr_red_coef','-lrred', default=1e-1, type=float, help='learning rate reduction factor')
 
     # Architecture parameters
-    parser.add_argument('--n_neurons','-n', default=200, type=int, help='number of neurons per hidden layer')
-    parser.add_argument('--code_size','-code', default=25, type=int, help='number of neurons in the code layer')
+    parser.add_argument('--layers','-l', default=[200, 200, 25], nargs='+', type=int, help='list with number of neurons per layer (including code)')
+    parser.add_argument('--activation','-act', default='relu', type=str, help="activaction function in autoencoder's hidden layers")
+    parser.add_argument('--initialisation','-init', default='kaiming_normal', type=str, help='weight initialisation method')
 
     # Display parameters
     parser.add_argument('--n_disp','-disp', default=6, type=int, help='number of test images displayed in results figure')
