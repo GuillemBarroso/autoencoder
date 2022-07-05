@@ -9,9 +9,10 @@ from src.image_naming import getMusFromImgName
 def reshape(x, size):
     return torch.reshape(x, size)
 
-def summaryInfo(data, name):
+def summaryInfo(data, name, verbose):
     df = pd.DataFrame(data, columns=['Parameter', 'Value'])
-    print(df)
+    if verbose:
+        print(df)
     dfi.export(df, name)
 
 def plotImage(data, nRows, n_disp, count):
@@ -55,6 +56,7 @@ def plotting(input, code, pred, code_trunc, pred_trunc, img_names, zero_code, tr
         ax.text(0.15,0.1,'loss = {}'.format(imageError))
         ax.axis('off')
     addPlotNames(plotNames)
+    savePlot('predictsPlot.png')
 
 def addPlotNames(plotNames):
     for i, plotName in enumerate(reversed(plotNames)):
@@ -74,6 +76,10 @@ def plotTraining(epochs, loss_train, loss_val):
     else:
         limsPlot = lims
     ax.set_ylim(limsPlot)
+    savePlot('trainPlot.png')
+
+def savePlot(name):
+    plt.savefig('results/{}'.format(name))
 
 def plotShow():
     plt.show()

@@ -13,6 +13,8 @@ class Predict(object):
         if n_disp > len(x_test): n_disp = len(x_test)
         self.n_disp = n_disp
         self.trunc_threshold = args.trunc_threshold
+        self.verbose = args.verbose
+        self.plot = args.plot
 
         self.loss_tot = None
         self.loss_image = None
@@ -40,7 +42,7 @@ class Predict(object):
             ['image trunc test loss', '{:.2}'.format(self.loss_image_trunc)],
             ['reg trunc test loss', '{:.2}'.format(self.loss_reg_trunc)],
             ]
-            summaryInfo(data, name)
+            summaryInfo(data, name, self.verbose)
 
         with torch.no_grad():
             pred, code = self.model(self.x_test.data)
@@ -48,15 +50,10 @@ class Predict(object):
 
         self.zero_code_flag, self.active_code_size, self.avg_code_mag = codeInfo(code)
         self.trunc_code_flag, code_trunc, self.latent_trunc_size  = truncCode(code, self.code_size, self.active_code_size, self.trunc_threshold)
-        print('Code for test image 1: ', code[0])
-        print('Total test loss before truncation: ',self.loss_tot)
-        print('Truncated code for test image 1: ',code_trunc[0])
+
         with torch.no_grad():
             pred_trunc = self.model.decode(code_trunc)
             self.loss_tot_trunc, self.loss_image_trunc, self.loss_reg_trunc = computeLosses(pred_trunc, self.x_test.data, code_trunc, self.reg_coef)
-        print('Total test loss after truncation: ',self.loss_tot_trunc)
-        print('Prediction from code - prediciton from truncarted code:')
-        print(pred[0]-pred_trunc[0])
 
         # Select first n_disp test images for display
         x_test = self.x_test[:self.n_disp,:,:]
@@ -69,7 +66,9 @@ class Predict(object):
         pred_trunc = reshape(pred_trunc, pred_dim)
         
         __summary()
-        plotting(x_test, code, pred, code_trunc, pred_trunc, img_test, self.zero_code_flag, self.trunc_code_flag)
-        plotShow()
+        if self.plot:
+            plotting(x_test, code, pred, code_trunc, pred_trunc, img_test, self.zero_code_flag,
+                    self.trunc_code_flag)
+            plotShow()
 
         

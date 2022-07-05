@@ -11,6 +11,7 @@ class Autoencoder(nn.Module):
         self.layers = args.layers
         self.activation = args.activation
         self.initialisation = args.initialisation
+        self.verbose = args.verbose
         self.activation_encoder = ['linear'] + (len(self.layers)-1)*[self.activation] + ['linear']
         self.activation_decoder = (len(self.layers)-1)*[self.activation] + ['sigmoid']
 
@@ -37,11 +38,11 @@ class Autoencoder(nn.Module):
     def __summary(self):
         name = 'results/archTable.png'
         data = [
-            ['layers', self.layers],
-            ['activation funct', self.activation],
+            ['all layers', self.layers],
+            ['act funct hid layers', self.activation],
             ['weight init', self.initialisation],
         ]
-        summaryInfo(data, name)
+        summaryInfo(data, name, self.verbose)
 
     def __activation_function(self, x, activation):
         if activation == 'linear': x = x

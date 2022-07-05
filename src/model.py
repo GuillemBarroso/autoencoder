@@ -18,6 +18,8 @@ class Model(object):
         self.reg_coef = args.reg_coef
         self.early_stop_patience = args.early_stop_patience
         self.early_stop_tol = args.early_stop_tol
+        self.verbose = args.verbose
+        self.plot = args.plot
         self.loss_train = []
         self.loss_train_image = []
         self.loss_train_reg = []
@@ -51,18 +53,20 @@ class Model(object):
             ['image val loss', '{:.2}'.format(self.loss_val_image[-1])],
             ['reg val loss', '{:.2}'.format(self.loss_val_reg[-1])],
             ]
-            summaryInfo(data, name)
+            summaryInfo(data, name, self.verbose)
 
         start = timeit.default_timer()
         for e in range(self.epochs):
-            print(f"Epoch {e+1}\n-------------------------------")
+            if self.verbose:
+                print(f"Epoch {e+1}\n-------------------------------")
             self.__trainEpoch()
             self.__valEpoch()
             self.__checkEarlyStop()
             if self.stop_training:
                 break
         self.train_time = timeit.default_timer() - start
-        plotTraining(e+1, self.loss_train, self.loss_val)
+        if self.plot:
+            plotTraining(e+1, self.loss_train, self.loss_val)
         __summary()
 
     def __trainEpoch(self):
@@ -78,7 +82,7 @@ class Model(object):
             self.optimiser.step()
             self.scheduler.step()
 
-            if batch % 100 == 0:
+            if batch % 100 == 0 and self.verbose:
                 print(f"tot_loss: {loss.item():>7f}, image_loss: {loss_image.item():>7f}, reg_loss: {loss_reg.item():>7f},  images: [{batch*len(X):>5d}/{len(self.x_train):>5d}]")
         self.loss_train.append(loss.item())
         self.loss_train_image.append(loss_image.item())
@@ -91,7 +95,8 @@ class Model(object):
         self.loss_val_image.append(loss_image)
         self.loss_val_reg.append(loss_reg)
 
-        print(f"Val error: \ntot_loss: {loss:>8f}, image_loss: {loss_image:>8f}, reg_loss: {loss_reg:>8f} \n")
+        if self.verbose:
+            print(f"Val error: \ntot_loss: {loss:>8f}, image_loss: {loss_image:>8f}, reg_loss: {loss_reg:>8f} \n")
 
     def __getNumBatches(self):
         return math.ceil(len(self.x_train)/self.batch_size)
@@ -118,6 +123,7 @@ class Model(object):
 
         if self.early_stop_count == self.early_stop_patience:
             self.stop_training = True
-            print('Early stop triggered')
+            if self.verbose:
+                print('Early stop triggered')
 
 
