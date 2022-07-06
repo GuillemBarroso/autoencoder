@@ -7,17 +7,6 @@ from src.test_data import getTestData
 from src.image_naming import getImageNamesFromMus, getMusFromImgName
 from src.postprocess import plotDataset, summaryInfo
 
-class DataTorch(Dataset):
-    def __init__(self, data):
-        self.data = data
-        self.resolution = data.shape[1:]
-        self.dimension = np.prod(self.resolution[0:2])
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        return self.data[idx]
 
 class Data(Dataset):
     def __init__(self, args):
@@ -51,6 +40,12 @@ class Data(Dataset):
         self.__getTestImageParams()
         plotDataset(self.mus_test_ext)
         self.__summary()
+
+    def __len__(self):
+        return len(self.x_train)
+
+    def __getitem__(self, idx):
+        return self.x_train[idx]
 
     def __summary(self):
         name = 'results/dataTable.png'

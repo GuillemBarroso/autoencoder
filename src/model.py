@@ -6,13 +6,13 @@ from src.calcs import computeLosses
 
 
 class Model(object):
-    def __init__(self, model, x_train, x_val, args):
+    def __init__(self, model, data, args):
         self.learning_rate = args.learning_rate
         self.lr_epoch_milestone = args.lr_epoch_milestone
         self.lr_red_coef = args.lr_red_coef
         self.model = model
-        self.x_train = x_train
-        self.x_val = x_val
+        self.x_train = data.x_train
+        self.x_val = data.x_val
         self.epochs = args.epochs
         self.batch_size = args.batch_size
         self.reg_coef = args.reg_coef

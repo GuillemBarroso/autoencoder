@@ -1,6 +1,6 @@
 import argparse
 from torchsummary import summary
-from src.load_data import Data, DataTorch
+from src.load_data import Data #, DataTorch
 from src.arch import Autoencoder
 from src.model import Model
 from src.predict import Predict
@@ -9,9 +9,6 @@ from src.predict import Predict
 def main(args):
     # Load data
     data = Data(args)
-    x_train = DataTorch(data.x_train)
-    x_val = DataTorch(data.x_val)
-    x_test = DataTorch(data.x_test)
 
     # Create autoencoder
     model = Autoencoder(data.resolution, args)
@@ -19,8 +16,8 @@ def main(args):
         summary(model, data.resolution)
 
     # Train and predict
-    Model(model, x_train, x_val, args).train()
-    Predict(model, x_test, data.img_test_names, args.n_disp, args).evaluate()    
+    Model(model, data, args).train()
+    Predict(model, data, args).evaluate()    
     
 
 if __name__ == "__main__":

@@ -4,14 +4,15 @@ from src.postprocess import summaryInfo, plotting, plotShow, reshape
 import numpy as np
 
 class Predict(object):
-    def __init__(self, model, x_test, img_names, n_disp, args):
+    def __init__(self, model, data, args):
         self.model = model
-        self.x_test = x_test
-        self.img_names = img_names
+        self.x_test = data.x_test
+        self.resolution = data.resolution
+        self.img_names = data.img_names
         self.reg_coef = args.reg_coef
         self.code_size = args.layers[-1]
-        if n_disp > len(x_test): n_disp = len(x_test)
-        self.n_disp = n_disp
+        if args.n_disp > len(self.x_test): args.n_disp = len(self.x_test)
+        self.n_disp = args.n_disp
         self.trunc_threshold = args.trunc_threshold
         self.verbose = args.verbose
         self.plot = args.plot
@@ -59,7 +60,7 @@ class Predict(object):
         x_test = self.x_test[:self.n_disp,:,:]
         img_test = self.img_names[:self.n_disp]
         code_dim = (code.shape[0], int(np.sqrt(self.code_size)), int(np.sqrt(self.code_size)))
-        pred_dim = (pred.shape[0], self.x_test.resolution[0], self.x_test.resolution[1])
+        pred_dim = (pred.shape[0], self.resolution[0], self.resolution[1])
         code = reshape(code, code_dim)
         code_trunc = reshape(code_trunc, code_dim)
         pred = reshape(pred, pred_dim)
