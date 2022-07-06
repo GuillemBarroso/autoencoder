@@ -8,7 +8,7 @@ from src.calcs import computeLosses
 class Model(object):
     def __init__(self, model, x_train, x_val, args):
         self.learning_rate = args.learning_rate
-        self.epoch_milestone = args.epoch_milestone
+        self.lr_epoch_milestone = args.lr_epoch_milestone
         self.lr_red_coef = args.lr_red_coef
         self.model = model
         self.x_train = x_train
@@ -32,7 +32,7 @@ class Model(object):
         self.early_stop_count = 0
         self.loss_prev_best = self.early_stop_tol*1e15
         self.optimiser = torch.optim.Adam(model.parameters(), lr=self.learning_rate, weight_decay=1e-4)
-        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimiser, milestones=self.epoch_milestone, gamma=self.lr_red_coef)
+        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimiser, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
 
     def train(self):
         def __summary():
@@ -42,9 +42,9 @@ class Model(object):
             ['early stop patience', '{} epochs'.format(self.early_stop_patience)],
             ['early stop tol', '{:.0e}'.format(self.early_stop_tol)],
             ['initial learning rate', '{:.0e}'.format(self.learning_rate)],
-            ['epochs lr reduction', '{}'.format(self.epoch_milestone)],
+            ['epochs lr reduction', '{}'.format(self.lr_epoch_milestone)],
             ['lr reduction factor', '{:.0e}'.format(self.lr_red_coef)],
-            ['training time', '{:.2}s/{:.1}min'.format(self.train_time, self.train_time/60)],
+            ['training time', '{:.2}s/{:.3}min'.format(self.train_time, self.train_time/60)],
             ['regularisation coef', '{:.0e}'.format(self.reg_coef)],
             ['total train loss', '{:.2}'.format(self.loss_train[-1])],
             ['image train loss', '{:.2}'.format(self.loss_train_image[-1])],

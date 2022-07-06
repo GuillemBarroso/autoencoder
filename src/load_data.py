@@ -3,6 +3,9 @@ import os
 import numpy as np
 import torch
 from sklearn.model_selection import train_test_split
+from src.test_data import getTestData
+from src.image_naming import getImageNamesFromMus, getMusFromImgName
+from src.postprocess import plotDataset
 
 class DataTorch(Dataset):
     def __init__(self, data):
@@ -17,34 +20,43 @@ class DataTorch(Dataset):
         return self.data[idx]
 
 class Data(Dataset):
-    def __init__(self, dataset, testSize=0.1):
+    def __init__(self, args):
         self.x_train = None
         self.x_val = None
         self.x_test = None
         self.dimension = None
         self.resolution = None
-        self.imgNames = None
-        self.imgTestNames = None
+        self.img_names = None
+        self.img_test_names = []
+        self.mus_test = None
+        self.mus_test_ext = [[], []]
+        self.mus_plot = None
 
-        self.testSize = testSize
-        self.dataset = dataset
+        self.dataset = args.dataset
+        self.random_test_data = args.random_test_data
+        self.split_size = args.split_size
 
         data = self.__getData()
 
-        x_train, x_val, x_test = self.__splitData(data)
-        self.__storeDataForTraining(x_train, x_val, x_test)
+        if self.random_test_data:
+            x_train, x_val, x_test = self.__splitDataRandom(data)
+        else:
+            x_train, x_val, x_test = self.__splitDataManual(data)
 
+        self.__storeDataForTraining(x_train, x_val, x_test)
+        self.__getTestImageParams()
+        plotDataset(self.mus_test_ext)
 
     def __getData(self):
         path = 'data/{}/data.npz'.format(self.dataset)
         if not os.path.exists(path):
             self.mesh = Mesh(self.dataset)
-            data, self.imgNames = self.__readFiles()
+            data, self.img_names = self.__readFiles()
             self.__saveDataAsNumpy(path, data)
         else:
             file = np.load(path)
             data = file['data']
-            self.imgNames = file['imgNames']
+            self.img_names = file['imgNames']
         
         return data
 
@@ -97,14 +109,33 @@ class Data(Dataset):
     def __saveDataAsNumpy(self, path, data):
         np.savez(path, data=data, imgNames=self.imgNames)
 
-    def __splitData(self, data):
-        valSize = self.testSize/(1-self.testSize)
+    def __splitDataRandom(self, data):
+        val_size = self.split_size/(1-self.split_size)
         idx = range(len(data))
-        x_train, x_test, _, idx_test = train_test_split(data, idx, test_size=self.testSize, shuffle=True)
-        x_train, x_val = train_test_split(x_train, test_size=valSize, shuffle=True)
-        self.imgTestNames = [self.imgNames[x] for x in idx_test]
-
+        x_train, x_test, _, idx_test = train_test_split(data, idx, test_size=self.split_size, shuffle=True)
+        x_train, x_val = train_test_split(x_train, test_size=val_size, shuffle=True)
+        self.img_test_names = [self.img_names[x] for x in idx_test]
         return x_train, x_val, x_test
+
+    def __splitDataManual(self, data):
+        self.mus_test, self.mus_plot = getTestData()
+        self.test_names, _, _ = getImageNamesFromMus(self.mus_test[0], self.mus_test[1])
+
+        x_test = []
+        x_no_test = []
+        for i, name in enumerate(self.img_names):
+            if name in self.test_names:
+                x_test.append(data[i])
+                self.img_test_names.append(name)
+            else:
+                x_no_test.append(data[i])
+
+        if len(x_test) != len(self.test_names):
+                raise ValueError('WARNING: number of test images requested is {}. Found {} with the same name in dataset.'.format(
+                    len(self.testData), len(x_test)))
+
+        x_train, x_val, = train_test_split(np.asarray(x_no_test), test_size=0.1, shuffle=True)
+        return x_train, x_val, np.asarray(x_test)
 
     def __storeDataForTraining(self, x_train, x_val, x_test):
         # Store training data in correct format
@@ -118,6 +149,12 @@ class Data(Dataset):
         self.nTrain = self.x_train.shape[0]
         self.nVal = self.x_val.shape[0]
         self.nTest = self.x_test.shape[0]
+
+    def __getTestImageParams(self):
+        for name in self.img_test_names:
+            mu1, mu2 = getMusFromImgName(name)
+            self.mus_test_ext[0].append(mu1)
+            self.mus_test_ext[1].append(mu2)
 
 
 def getStringsSpaceSeparated(line):

@@ -1,9 +1,8 @@
 import matplotlib.pyplot as plt
 import torch
 import pandas as pd
-import numpy as np
 import dataframe_image as dfi
-from src.image_naming import getMusFromImgName
+from src.image_naming import getMusFromImgName, getMuDomain
 
 
 def reshape(x, size):
@@ -63,6 +62,7 @@ def addPlotNames(plotNames):
         plt.text(0.1, 0.12+0.14*i, plotName, fontsize=12, transform=plt.gcf().transFigure, rotation=90)
 
 def plotTraining(epochs, loss_train, loss_val):
+    plt.figure()
     plt.plot(range(epochs), loss_train)
     plt.plot(range(1,epochs+1), loss_val)
     plt.title('Training losses')
@@ -77,6 +77,21 @@ def plotTraining(epochs, loss_train, loss_val):
         limsPlot = lims
     ax.set_ylim(limsPlot)
     savePlot('trainPlot.png')
+
+def plotDataset(mus_test_ext):
+    mu1, mu2, mu1_ext, mu2_ext = getMuDomain()
+    mu1_test = mus_test_ext[0]
+    mu2_test = mus_test_ext[1]
+
+    # Plot points for training and testing
+    fig, ax = plt.subplots()
+    ax.scatter(mu1_ext, mu2_ext, color='blue')
+    ax.scatter(mu1_test, mu2_test, color='red')
+    ax.set_xticks(mu1)
+    ax.set_yticks(mu2)
+    plt.xlabel("mu_1 (position)")
+    plt.ylabel("mu_2 (angle in º)")
+    savePlot('datasetPlot.png')
 
 def savePlot(name):
     plt.savefig('results/{}'.format(name))
