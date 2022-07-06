@@ -5,7 +5,7 @@ import torch
 from sklearn.model_selection import train_test_split
 from src.test_data import getTestData
 from src.image_naming import getImageNamesFromMus, getMusFromImgName
-from src.postprocess import plotDataset
+from src.postprocess import plotDataset, summaryInfo
 
 class DataTorch(Dataset):
     def __init__(self, data):
@@ -26,6 +26,7 @@ class Data(Dataset):
         self.x_test = None
         self.dimension = None
         self.resolution = None
+        self.scale = None
         self.img_names = None
         self.img_test_names = []
         self.mus_test = None
@@ -35,6 +36,7 @@ class Data(Dataset):
         self.dataset = args.dataset
         self.random_test_data = args.random_test_data
         self.split_size = args.split_size
+        self.verbose = args.verbose
 
         data = self.__getData()
 
@@ -43,9 +45,23 @@ class Data(Dataset):
         else:
             x_train, x_val, x_test = self.__splitDataManual(data)
 
+        x_train, x_val, x_test = self.__normaliseData(x_train, x_val, x_test)
+
         self.__storeDataForTraining(x_train, x_val, x_test)
         self.__getTestImageParams()
         plotDataset(self.mus_test_ext)
+        self.__summary()
+
+    def __summary(self):
+        name = 'results/dataTable.png'
+        data = [
+            ['dataset', self.dataset],
+            ['random test data', self.random_test_data],
+            ['data split size', self.split_size],
+            ['image resolution', self.resolution],
+            ['image scale', self.scale],
+        ]
+        summaryInfo(data, name, self.verbose)
 
     def __getData(self):
         path = 'data/{}/data.npz'.format(self.dataset)
@@ -146,6 +162,7 @@ class Data(Dataset):
         # Store extra info
         self.resolution = self.x_train.shape[1:]
         self.dimension = np.prod(self.resolution[0:2])
+        self.scale = (self.x_train.min().item(), self.x_train.max().item())
         self.nTrain = self.x_train.shape[0]
         self.nVal = self.x_val.shape[0]
         self.nTest = self.x_test.shape[0]
@@ -155,6 +172,15 @@ class Data(Dataset):
             mu1, mu2 = getMusFromImgName(name)
             self.mus_test_ext[0].append(mu1)
             self.mus_test_ext[1].append(mu2)
+
+    def __normaliseData(self, x_train, x_val, x_test):
+        x_train = self.__normaliseArray(x_train)
+        x_val = self.__normaliseArray(x_val)
+        x_test = self.__normaliseArray(x_test)
+        return x_train, x_val, x_test
+
+    def __normaliseArray(self, arr):
+        return (arr.astype('float32') - np.amin(arr)) / (np.amax(arr) - np.amin(arr) )
 
 
 def getStringsSpaceSeparated(line):
