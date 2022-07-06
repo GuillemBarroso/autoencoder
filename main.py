@@ -1,6 +1,6 @@
 import argparse
 from torchsummary import summary
-from src.load_data import Data #, DataTorch
+from src.load_data import Data
 from src.arch import Autoencoder
 from src.model import Model
 from src.predict import Predict
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     parser.add_argument('--split_size', '-split_size', default=0.1, type=float, help='Test and validation splitting percentage (from 0 to 1) from total dataset')
     
     # Training parameters
-    parser.add_argument('--epochs', '-e', default=100, type=int, help='number of training epochs')
+    parser.add_argument('--epochs', '-e', default=1000, type=int, help='number of training epochs')
     parser.add_argument('--reg_coef', '-reg', default=1e-4, type=float, help='regularisation coefficient in the code layer')
     parser.add_argument('--batch_size', '-bs', default=600, type=int, help='batch size')
     parser.add_argument('--learning_rate', '-lr', default=1e-3, type=float, help='training learning rate ')
@@ -49,8 +49,8 @@ if __name__ == "__main__":
     parser.add_argument('--act_code','-act_code', default='linear', type=str, help="activaction function in encoder's last layer (code or latent space)")
     parser.add_argument('--act_hid','-act_hid', default='paramRelu', type=str, help="activaction function in autoencoder's hidden layers")
     parser.add_argument('--act_out','-act_out', default='paramSigmoid', type=str, help="activaction function in decoders's last layer (final output)")
-    parser.add_argument('--alpha_act_hid','-a_act_hid', default=0.5, type=float, help="initial value for the parameter of the activaction function in autoencoder's hidden layers")
-    parser.add_argument('--alpha_act_out','-a_act_out', default=0.5, type=float, help="initial value for the parameter of the activaction function in decoders's last layer (final output)")
+    parser.add_argument('--alpha_act_hid','-a_act_hid', default=1.2, type=float, help="initial value for the parameter of the activaction function in autoencoder's hidden layers")
+    parser.add_argument('--alpha_act_out','-a_act_out', default=1.2, type=float, help="initial value for the parameter of the activaction function in decoders's last layer (final output)")
 
     # Display parameters
     parser.add_argument('--n_disp','-disp', default=6, type=int, help='number of test images displayed in results figure')

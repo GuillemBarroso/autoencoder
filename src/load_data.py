@@ -21,6 +21,9 @@ class Data(Dataset):
         self.mus_test = None
         self.mus_test_ext = [[], []]
         self.mus_plot = None
+        self.n_train = None
+        self.n_val = None
+        self.n_test = None
 
         self.dataset = args.dataset
         self.random_test_data = args.random_test_data
@@ -53,6 +56,9 @@ class Data(Dataset):
             ['dataset', self.dataset],
             ['random test data', self.random_test_data],
             ['data split size', self.split_size],
+            ['num train images', self.n_train],
+            ['num val images', self.n_val],
+            ['num test images', self.n_test],
             ['image resolution', self.resolution],
             ['image scale', self.scale],
         ]
@@ -158,9 +164,9 @@ class Data(Dataset):
         self.resolution = self.x_train.shape[1:]
         self.dimension = np.prod(self.resolution[0:2])
         self.scale = (self.x_train.min().item(), self.x_train.max().item())
-        self.nTrain = self.x_train.shape[0]
-        self.nVal = self.x_val.shape[0]
-        self.nTest = self.x_test.shape[0]
+        self.n_train = self.x_train.shape[0]
+        self.n_val = self.x_val.shape[0]
+        self.n_test = self.x_test.shape[0]
 
     def __getTestImageParams(self):
         for name in self.img_test_names:
