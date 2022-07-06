@@ -61,7 +61,7 @@ def addPlotNames(plotNames):
     for i, plotName in enumerate(reversed(plotNames)):
         plt.text(0.1, 0.12+0.14*i, plotName, fontsize=12, transform=plt.gcf().transFigure, rotation=90)
 
-def plotTraining(epochs, loss_train, loss_val):
+def plotTraining(epochs, loss_train, loss_val, alphas):
     plt.figure()
     plt.plot(range(epochs), loss_train)
     plt.plot(range(1,epochs+1), loss_val)
@@ -77,6 +77,15 @@ def plotTraining(epochs, loss_train, loss_val):
         limsPlot = lims
     ax.set_ylim(limsPlot)
     savePlot('trainPlot.png')
+
+    plt.figure()
+    plt.plot(range(epochs), alphas[0])
+    plt.plot(range(epochs), alphas[1])
+    plt.title('Activation function parameters')
+    plt.ylabel('alpha')
+    plt.xlabel('epoch')
+    plt.legend(['alpha ReLu', 'alpha Sigmoid'], loc='upper right')
+    savePlot('alphasPlot.png')
 
 def plotDataset(mus_test_ext):
     mu1, mu2, mu1_ext, mu2_ext = getMuDomain()

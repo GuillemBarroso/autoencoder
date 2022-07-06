@@ -3,17 +3,25 @@ from torch import nn
 import torch.nn.functional as F
 import torch.nn.init as init
 from src.postprocess import summaryInfo
+from src.param_act_func import param_sigmoid, param_relu
 
 
 class Autoencoder(nn.Module):
     def __init__(self, resolution, args):
         super(Autoencoder, self).__init__()
         self.layers = args.layers
-        self.activation = args.activation
+        self.act_code = args.act_code
+        self.act_hid = args.act_hid
+        self.act_out = args.act_out
+        self.alpha_act_hid = args.alpha_act_hid
+        self.alpha_act_out = args.alpha_act_out
         self.initialisation = args.initialisation
         self.verbose = args.verbose
-        self.activation_encoder = ['linear'] + (len(self.layers)-1)*[self.activation] + ['linear']
-        self.activation_decoder = (len(self.layers)-1)*[self.activation] + ['sigmoid']
+        self.activation_encoder = ['linear'] + (len(self.layers)-1)*[self.act_hid] + [self.act_code]
+        self.activation_decoder = (len(self.layers)-1)*[self.act_hid] + [self.act_out]
+
+        self.paramRelu = param_relu(self.alpha_act_hid)
+        self.paramSigmoid = param_sigmoid(self.alpha_act_out)
 
         # Add input layer with image resolution as dimensions
         self.layers = [resolution[0]*resolution[1]] + self.layers
@@ -39,9 +47,16 @@ class Autoencoder(nn.Module):
         name = 'results/archTable.png'
         data = [
             ['all layers', self.layers],
-            ['act funct hid layers', self.activation],
             ['weight init', self.initialisation],
+            ['act funct hid layers', self.act_hid],
+            ['act funct code layer', self.act_code],
+            ['act funct last layer', self.act_out],
         ]
+        if self.act_hid == 'paramRelu':
+            data.append(['code initial alpha', self.alpha_act_hid])
+        if self.act_out == 'paramSigmoid':
+            data.append(['out initial alpha', self.alpha_act_out])
+        
         summaryInfo(data, name, self.verbose)
 
     def __activation_function(self, x, activation):
@@ -51,6 +66,8 @@ class Autoencoder(nn.Module):
         elif activation == 'rrelu': x = F.rrelu(x)
         elif activation == 'tanh': x = torch.tanh(x)
         elif activation == 'elu': x = F.elu(x)
+        elif activation == 'paramSigmoid': x = self.paramSigmoid(x)
+        elif activation == 'paramRelu': x = self.paramRelu(x)
         else: raise NotImplementedError
         return x
     

@@ -20,12 +20,15 @@ class Model(object):
         self.early_stop_tol = args.early_stop_tol
         self.verbose = args.verbose
         self.plot = args.plot
+        self.act_hid = args.act_hid
+        self.act_out = args.act_out
         self.loss_train = []
         self.loss_train_image = []
         self.loss_train_reg = []
         self.loss_val = []
         self.loss_val_image = []
         self.loss_val_reg = []
+        self.alphas = [[], []]
         self.best_loss_val = None
         self.stop_training = None
         self.train_time = None
@@ -53,6 +56,10 @@ class Model(object):
             ['image val loss', '{:.2}'.format(self.loss_val_image[-1])],
             ['reg val loss', '{:.2}'.format(self.loss_val_reg[-1])],
             ]
+            if self.act_hid == 'paramRelu':
+                data.append(['hidden optim alpha', self.model.paramRelu.alpha.item()])
+            if self.act_out == 'paramSigmoid':
+                data.append(['out optim alpha', self.model.paramSigmoid.alpha.item()])
             summaryInfo(data, name, self.verbose)
 
         start = timeit.default_timer()
@@ -66,7 +73,7 @@ class Model(object):
                 break
         self.train_time = timeit.default_timer() - start
         if self.plot:
-            plotTraining(e+1, self.loss_train, self.loss_val)
+            plotTraining(e+1, self.loss_train, self.loss_val, self.alphas)
         __summary()
 
     def __trainEpoch(self):
@@ -87,6 +94,8 @@ class Model(object):
         self.loss_train.append(loss.item())
         self.loss_train_image.append(loss_image.item())
         self.loss_train_reg.append(loss_reg.item())
+        self.alphas[0].append(self.model.paramRelu.alpha.item())
+        self.alphas[1].append(self.model.paramSigmoid.alpha.item())
 
     def __valEpoch(self):
         with torch.no_grad():
