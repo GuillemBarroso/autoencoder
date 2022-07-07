@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import torch
 import pandas as pd
 import dataframe_image as dfi
-from src.image_naming import getMusFromImgName, getMuDomain
+from src.beam_homog_naming import getMusFromImgName, getMuDomain
 
 
 def reshape(x, size):

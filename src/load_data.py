@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from sklearn.model_selection import train_test_split
 from src.test_data import getTestData
-from src.image_naming import getImageNamesFromMus, getMusFromImgName
+from src.beam_homog_naming import getImageNamesFromMus, getMusFromImgName
 from src.postprocess import plotDataset, summaryInfo
 
 
@@ -24,6 +24,7 @@ class Data(Dataset):
         self.n_train = None
         self.n_val = None
         self.n_test = None
+        self.implemented_data = ['beam_homog', 'beam_homog_test', 'elipse']
 
         self.dataset = args.dataset
         self.random_test_data = args.random_test_data
@@ -65,6 +66,7 @@ class Data(Dataset):
         summaryInfo(data, name, self.verbose)
 
     def __getData(self):
+        if not self.dataset in self.implemented_data: raise NotImplementedError
         path = 'data/{}/data.npz'.format(self.dataset)
         if not os.path.exists(path):
             self.mesh = Mesh(self.dataset)
