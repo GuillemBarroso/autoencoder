@@ -44,13 +44,13 @@ def plotting(input, code, pred, code_trunc, pred_trunc, img_names, zero_code, tr
         plotImage(pred_trunc[i], nRows, n_disp, i+1+4*n_disp)
 
         # Display error for each test image
-        mu1, mu2 = data_class.getMusFromImgName(img_names[i])
+        mus = data_class.getMusFromImgName(img_names[i])
         img_error = torch.mean((pred[i]-input[i,:,:,0])**2)
 
         imageError = '{:.2}'.format(img_error.item())
         ax = plt.subplot(nRows, n_disp, i + 1 + 5*n_disp)
-        ax.text(0.15,0.5,'mu1 = {}'.format(mu1))
-        ax.text(0.15,0.3,'mu2 = {}'.format(mu2))
+        for imu in range(len(mus)):
+            ax.text(0.15,0.5-(imu*0.2),'mu{} = {}'.format(imu+1, mus[imu]))
         ax.text(0.15,0.1,'loss = {}'.format(imageError))
         ax.axis('off')
     addPlotNames(plotNames)

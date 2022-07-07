@@ -5,6 +5,7 @@ import torch
 from sklearn.model_selection import train_test_split
 from src.test_data import getTestData
 from src.beam_homog_naming import BeamHomog
+from src.elipse_naming import Elipse
 from src.postprocess import summaryInfo
 
 
@@ -185,8 +186,7 @@ class Data(Dataset):
         if self.dataset == 'beam_homog' or self.dataset == 'beam_homog_test':
             self.data_class = BeamHomog()
         elif self.dataset == 'elipse':
-            # self.data_class = Elispe()
-            pass
+            self.data_class = Elipse()
 
     def __normaliseData(self, x_train, x_val, x_test):
         x_train = self.__normaliseArray(x_train)

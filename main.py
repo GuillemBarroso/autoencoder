@@ -24,7 +24,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Autoencoder for image compression')
 
     # General parameters
-    parser.add_argument('--dataset', '-d', default='beam_homog_test', type=str, help='name of the dataset')
+    parser.add_argument('--dataset', '-d', default='elipse', type=str, help='name of the dataset')
     parser.add_argument('--trunc_threshold', '-trunc_th', default=0.1, type=float, help='threshold to truncate the code after training')
     parser.add_argument('--verbose', '-vrb', default=True, type=bool, help='display information on command window')
     parser.add_argument('--plot', '-plt', default=True, type=bool, help='plot training and predictions in figures and save pngs')
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     parser.add_argument('--split_size', '-split_size', default=0.1, type=float, help='Test and validation splitting percentage (from 0 to 1) from total dataset')
     
     # Training parameters
-    parser.add_argument('--epochs', '-e', default=10, type=int, help='number of training epochs')
+    parser.add_argument('--epochs', '-e', default=1000, type=int, help='number of training epochs')
     parser.add_argument('--reg_coef', '-reg', default=1e-4, type=float, help='regularisation coefficient in the code layer')
     parser.add_argument('--batch_size', '-bs', default=600, type=int, help='batch size')
     parser.add_argument('--learning_rate', '-lr', default=1e-3, type=float, help='training learning rate ')
@@ -46,11 +46,11 @@ if __name__ == "__main__":
     # Architecture parameters
     parser.add_argument('--layers','-l', default=[200, 100, 25], nargs='+', type=int, help='list with number of neurons per layer (including code)')
     parser.add_argument('--initialisation','-init', default='kaiming_uniform', type=str, help='weight initialisation method')
-    parser.add_argument('--act_code','-act_code', default='linear', type=str, help="activaction function in encoder's last layer (code or latent space)")
+    parser.add_argument('--act_code','-act_code', default='relu', type=str, help="activaction function in encoder's last layer (code or latent space)")
     parser.add_argument('--act_hid','-act_hid', default='paramRelu', type=str, help="activaction function in autoencoder's hidden layers")
     parser.add_argument('--act_out','-act_out', default='paramSigmoid', type=str, help="activaction function in decoders's last layer (final output)")
-    parser.add_argument('--alpha_act_hid','-a_act_hid', default=1.2, type=float, help="initial value for the parameter of the activaction function in autoencoder's hidden layers")
-    parser.add_argument('--alpha_act_out','-a_act_out', default=1.2, type=float, help="initial value for the parameter of the activaction function in decoders's last layer (final output)")
+    parser.add_argument('--alpha_act_hid','-a_act_hid', default=1.0, type=float, help="initial value for the parameter of the activaction function in autoencoder's hidden layers")
+    parser.add_argument('--alpha_act_out','-a_act_out', default=1.0, type=float, help="initial value for the parameter of the activaction function in decoders's last layer (final output)")
 
     # Display parameters
     parser.add_argument('--n_disp','-disp', default=6, type=int, help='number of test images displayed in results figure')
