@@ -46,11 +46,11 @@ if __name__ == "__main__":
     # Architecture parameters
     parser.add_argument('--layers','-l', default=[200, 100, 25], nargs='+', type=int, help='list with number of neurons per layer (including code)')
     parser.add_argument('--initialisation','-init', default='kaiming_uniform', type=str, help='weight initialisation method')
-    parser.add_argument('--act_code','-act_code', default='relu', type=str, help="activaction function in encoder's last layer (code or latent space)")
-    parser.add_argument('--act_hid','-act_hid', default='paramRelu', type=str, help="activaction function in autoencoder's hidden layers")
-    parser.add_argument('--act_out','-act_out', default='paramSigmoid', type=str, help="activaction function in decoders's last layer (final output)")
-    parser.add_argument('--alpha_act_hid','-a_act_hid', default=1.0, type=float, help="initial value for the parameter of the activaction function in autoencoder's hidden layers")
-    parser.add_argument('--alpha_act_out','-a_act_out', default=1.0, type=float, help="initial value for the parameter of the activaction function in decoders's last layer (final output)")
+    parser.add_argument('--act_code','-act_code', default='param_relu', type=str, help="activaction function in encoder's last layer (code or latent space)")
+    parser.add_argument('--act_hid','-act_hid', default='param_relu', type=str, help="activaction function in autoencoder's hidden layers")
+    parser.add_argument('--act_out','-act_out', default='param_sigmoid', type=str, help="activaction function in decoders's last layer (final output)")
+    parser.add_argument('--alpha_relu','-a_relu', default=1.0, type=float, help="initial value for the parameter of the relu activaction function")
+    parser.add_argument('--alpha_sigmoid','-a_sigmoid', default=1.0, type=float, help="initial value for the parameter of the sigmoid activaction function")
 
     # Display parameters
     parser.add_argument('--n_disp','-disp', default=6, type=int, help='number of test images displayed in results figure')

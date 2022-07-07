@@ -13,15 +13,15 @@ class Autoencoder(nn.Module):
         self.act_code = args.act_code
         self.act_hid = args.act_hid
         self.act_out = args.act_out
-        self.alpha_act_hid = args.alpha_act_hid
-        self.alpha_act_out = args.alpha_act_out
+        self.alpha_relu = args.alpha_relu
+        self.alpha_sigmoid = args.alpha_sigmoid
         self.initialisation = args.initialisation
         self.verbose = args.verbose
         self.activation_encoder = ['linear'] + (len(self.layers)-1)*[self.act_hid] + [self.act_code]
         self.activation_decoder = (len(self.layers)-1)*[self.act_hid] + [self.act_out]
 
-        self.paramRelu = param_relu(self.alpha_act_hid)
-        self.paramSigmoid = param_sigmoid(self.alpha_act_out)
+        self.param_relu = param_relu(self.alpha_relu)
+        self.param_sigmoid = param_sigmoid(self.alpha_sigmoid)
 
         # Add input layer with image resolution as dimensions
         self.layers = [resolution[0]*resolution[1]] + self.layers
@@ -52,10 +52,10 @@ class Autoencoder(nn.Module):
             ['act funct code layer', self.act_code],
             ['act funct last layer', self.act_out],
         ]
-        if self.act_hid == 'paramRelu':
-            data.append(['code initial alpha', self.alpha_act_hid])
-        if self.act_out == 'paramSigmoid':
-            data.append(['out initial alpha', self.alpha_act_out])
+        if self.act_hid == 'param_relu' or self.act_code == 'param_relu':
+            data.append(['relu initial alpha', self.alpha_relu])
+        if self.act_out == 'param_sigmoid':
+            data.append(['sigmoid initial alpha', self.alpha_sigmoid])
         
         summaryInfo(data, name, self.verbose)
 
@@ -66,8 +66,8 @@ class Autoencoder(nn.Module):
         elif activation == 'rrelu': x = F.rrelu(x)
         elif activation == 'tanh': x = torch.tanh(x)
         elif activation == 'elu': x = F.elu(x)
-        elif activation == 'paramSigmoid': x = self.paramSigmoid(x)
-        elif activation == 'paramRelu': x = self.paramRelu(x)
+        elif activation == 'param_sigmoid': x = self.param_sigmoid(x)
+        elif activation == 'param_relu': x = self.param_relu(x)
         else: raise NotImplementedError
         return x
     

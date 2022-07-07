@@ -22,6 +22,7 @@ class Model(object):
         self.plot = args.plot
         self.act_hid = args.act_hid
         self.act_out = args.act_out
+        self.act_code = args.act_code
         self.loss_train = []
         self.loss_train_image = []
         self.loss_train_reg = []
@@ -56,10 +57,10 @@ class Model(object):
             ['image val loss', '{:.2}'.format(self.loss_val_image[-1])],
             ['reg val loss', '{:.2}'.format(self.loss_val_reg[-1])],
             ]
-            if self.act_hid == 'paramRelu':
-                data.append(['hidden optim alpha', self.model.paramRelu.alpha.item()])
-            if self.act_out == 'paramSigmoid':
-                data.append(['out optim alpha', self.model.paramSigmoid.alpha.item()])
+            if self.act_hid == 'param_relu' or self.act_code == 'param_relu':
+                data.append(['relu optim alpha', self.model.param_relu.alpha.item()])
+            if self.act_out == 'param_sigmoid':
+                data.append(['sigmoid optim alpha', self.model.param_sigmoid.alpha.item()])
             summaryInfo(data, name, self.verbose)
 
         start = timeit.default_timer()
@@ -94,8 +95,8 @@ class Model(object):
         self.loss_train.append(loss.item())
         self.loss_train_image.append(loss_image.item())
         self.loss_train_reg.append(loss_reg.item())
-        self.alphas[0].append(self.model.paramRelu.alpha.item())
-        self.alphas[1].append(self.model.paramSigmoid.alpha.item())
+        self.alphas[0].append(self.model.param_relu.alpha.item())
+        self.alphas[1].append(self.model.param_sigmoid.alpha.item())
 
     def __valEpoch(self):
         with torch.no_grad():
