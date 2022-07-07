@@ -34,7 +34,7 @@ if __name__ == "__main__":
     parser.add_argument('--split_size', '-split_size', default=0.1, type=float, help='Test and validation splitting percentage (from 0 to 1) from total dataset')
     
     # Training parameters
-    parser.add_argument('--epochs', '-e', default=1000, type=int, help='number of training epochs')
+    parser.add_argument('--epochs', '-e', default=10, type=int, help='number of training epochs')
     parser.add_argument('--reg_coef', '-reg', default=1e-4, type=float, help='regularisation coefficient in the code layer')
     parser.add_argument('--batch_size', '-bs', default=600, type=int, help='batch size')
     parser.add_argument('--learning_rate', '-lr', default=1e-3, type=float, help='training learning rate ')

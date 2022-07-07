@@ -4,8 +4,8 @@ import numpy as np
 import torch
 from sklearn.model_selection import train_test_split
 from src.test_data import getTestData
-from src.beam_homog_naming import getImageNamesFromMus, getMusFromImgName
-from src.postprocess import plotDataset, summaryInfo
+from src.beam_homog_naming import BeamHomog
+from src.postprocess import summaryInfo
 
 
 class Data(Dataset):
@@ -19,11 +19,12 @@ class Data(Dataset):
         self.img_names = None
         self.img_test_names = []
         self.mus_test = None
-        self.mus_test_ext = [[], []]
+        self.mus_test_ext = None
         self.mus_plot = None
         self.n_train = None
         self.n_val = None
         self.n_test = None
+        self.data_class = None
         self.implemented_data = ['beam_homog', 'beam_homog_test', 'elipse']
 
         self.dataset = args.dataset
@@ -42,7 +43,7 @@ class Data(Dataset):
 
         self.__storeDataForTraining(x_train, x_val, x_test)
         self.__getTestImageParams()
-        plotDataset(self.mus_test_ext)
+        self.data_class.plotDataset(self.mus_test_ext)
         self.__summary()
 
     def __len__(self):
@@ -67,6 +68,7 @@ class Data(Dataset):
 
     def __getData(self):
         if not self.dataset in self.implemented_data: raise NotImplementedError
+        self.__getDataClass()
         path = 'data/{}/data.npz'.format(self.dataset)
         if not os.path.exists(path):
             self.mesh = Mesh(self.dataset)
@@ -138,7 +140,7 @@ class Data(Dataset):
 
     def __splitDataManual(self, data):
         self.mus_test, self.mus_plot = getTestData()
-        self.test_names, _, _ = getImageNamesFromMus(self.mus_test[0], self.mus_test[1])
+        self.test_names, _, _ = self.data_class.getImageNamesFromMus(self.mus_test[0], self.mus_test[1])
 
         x_test = []
         x_no_test = []
@@ -171,10 +173,20 @@ class Data(Dataset):
         self.n_test = self.x_test.shape[0]
 
     def __getTestImageParams(self):
+        is_first = True
         for name in self.img_test_names:
-            mu1, mu2 = getMusFromImgName(name)
-            self.mus_test_ext[0].append(mu1)
-            self.mus_test_ext[1].append(mu2)
+            mus = self.data_class.getMusFromImgName(name)
+            if is_first: 
+                self.mus_test_ext = [[] for x in range(len(mus))]; is_first = False
+            for imu, mu in enumerate(mus):
+                self.mus_test_ext[imu].append(mu)
+
+    def __getDataClass(self):
+        if self.dataset == 'beam_homog' or self.dataset == 'beam_homog_test':
+            self.data_class = BeamHomog()
+        elif self.dataset == 'elipse':
+            # self.data_class = Elispe()
+            pass
 
     def __normaliseData(self, x_train, x_val, x_test):
         x_train = self.__normaliseArray(x_train)

@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import torch
 import pandas as pd
 import dataframe_image as dfi
-from src.beam_homog_naming import getMusFromImgName, getMuDomain
 
 
 def reshape(x, size):
@@ -29,7 +28,7 @@ def plotZeroCode(code_size, plot_code, colour):
                 plt.scatter(x,y, color=colour,s=5)
             count += 1
 
-def plotting(input, code, pred, code_trunc, pred_trunc, img_names, zero_code, trunc_code):
+def plotting(input, code, pred, code_trunc, pred_trunc, img_names, zero_code, trunc_code, data_class):
     nRows = 6
     plotNames = ['X', 'code', 'X_NN', 'code trunc', 'X_NN trunc', 'fig data']
     n_disp = len(input)
@@ -45,7 +44,7 @@ def plotting(input, code, pred, code_trunc, pred_trunc, img_names, zero_code, tr
         plotImage(pred_trunc[i], nRows, n_disp, i+1+4*n_disp)
 
         # Display error for each test image
-        mu1, mu2 = getMusFromImgName(img_names[i])
+        mu1, mu2 = data_class.getMusFromImgName(img_names[i])
         img_error = torch.mean((pred[i]-input[i,:,:,0])**2)
 
         imageError = '{:.2}'.format(img_error.item())
@@ -86,21 +85,6 @@ def plotTraining(epochs, loss_train, loss_val, alphas):
     plt.xlabel('epoch')
     plt.legend(['alpha ReLu', 'alpha Sigmoid'], loc='upper right')
     savePlot('alphasPlot.png')
-
-def plotDataset(mus_test_ext):
-    mu1, mu2, mu1_ext, mu2_ext = getMuDomain()
-    mu1_test = mus_test_ext[0]
-    mu2_test = mus_test_ext[1]
-
-    # Plot points for training and testing
-    fig, ax = plt.subplots()
-    ax.scatter(mu1_ext, mu2_ext, color='blue')
-    ax.scatter(mu1_test, mu2_test, color='red')
-    ax.set_xticks(mu1)
-    ax.set_yticks(mu2)
-    plt.xlabel("mu_1 (position)")
-    plt.ylabel("mu_2 (angle in º)")
-    savePlot('datasetPlot.png')
 
 def savePlot(name):
     plt.savefig('results/{}'.format(name))

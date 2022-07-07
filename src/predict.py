@@ -9,6 +9,7 @@ class Predict(object):
         self.x_test = data.x_test
         self.resolution = data.resolution
         self.img_names = data.img_names
+        self.data_class = data.data_class
         self.reg_coef = args.reg_coef
         self.code_size = args.layers[-1]
         if args.n_disp > len(self.x_test): args.n_disp = len(self.x_test)
@@ -69,7 +70,7 @@ class Predict(object):
         __summary()
         if self.plot:
             plotting(x_test, code, pred, code_trunc, pred_trunc, img_test, self.zero_code_flag,
-                    self.trunc_code_flag)
+                    self.trunc_code_flag, self.data_class)
             plotShow()
 
         
