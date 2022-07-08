@@ -38,9 +38,9 @@ if __name__ == "__main__":
     parser.add_argument('--reg_coef', '-reg', default=1e-4, type=float, help='regularisation coefficient in the code layer')
     parser.add_argument('--batch_size', '-bs', default=600, type=int, help='batch size')
     parser.add_argument('--learning_rate', '-lr', default=1e-3, type=float, help='training learning rate ')
-    parser.add_argument('--early_stop_patience', '-es_pat', default=50, type=int, help='number of epochs that the early stopping criteria will wait before stopping training')
+    parser.add_argument('--early_stop_patience', '-es_pat', default=100, type=int, help='number of epochs that the early stopping criteria will wait before stopping training')
     parser.add_argument('--early_stop_tol', '-es_tol', default=1e-3, type=float, help='tolerance that the early stopping will consider')
-    parser.add_argument('--lr_epoch_milestone', '-lr_e', default=[100], nargs='+', type=int, help='list of epochs in which learning rate will be decreased')
+    parser.add_argument('--lr_epoch_milestone', '-lr_e', default=[1000], nargs='+', type=int, help='list of epochs in which learning rate will be decreased')
     parser.add_argument('--lr_red_coef','-lr_coef', default=7e-1, type=float, help='learning rate reduction factor')
 
     # Architecture parameters

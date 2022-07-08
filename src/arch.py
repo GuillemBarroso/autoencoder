@@ -17,25 +17,35 @@ class Autoencoder(nn.Module):
         self.alpha_sigmoid = args.alpha_sigmoid
         self.initialisation = args.initialisation
         self.verbose = args.verbose
-        self.activation_encoder = ['linear'] + (len(self.layers)-1)*[self.act_hid] + [self.act_code]
-        self.activation_decoder = (len(self.layers)-1)*[self.act_hid] + [self.act_out]
-
         self.param_relu = param_relu(self.alpha_relu)
         self.param_sigmoid = param_sigmoid(self.alpha_sigmoid)
 
         # Add input layer with image resolution as dimensions
         self.layers = [resolution[0]*resolution[1]] + self.layers
 
-        # Create ModuleList to store layers that will be used later to build the autoencoder
+        # Encoder
         steps = len(self.layers)-1
         self.encoder = nn.ModuleList()
+        self.activation_encoder = []
         self.encoder.append(nn.Flatten())
-        for k in range(steps):
+        self.activation_encoder.append('linear')
+        # Encoder hidden layers
+        for k in range(steps-1):
             self.encoder.append(nn.Linear(self.layers[k], self.layers[k+1]))
-        
+            self.activation_encoder.append(self.act_hid)
+        # Code
+        self.encoder.append(nn.Linear(self.layers[-2], self.layers[-1]))
+        self.activation_encoder.append(self.act_code)
+
+        # Decoder
         self.decoder = nn.ModuleList()
-        for k in range(steps):
+        self.activation_decoder = []
+        for k in range(steps-1):
             self.decoder.append(nn.Linear(self.layers[steps-k], self.layers[steps-k-1]))
+            self.activation_decoder.append(self.act_hid)
+        # Add last decoder layer
+        self.decoder.append(nn.Linear(self.layers[1], self.layers[0]))
+        self.activation_decoder.append(self.act_out)
 
         # Weight initialisation  
         self.__weight_init(self.encoder)
