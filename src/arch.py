@@ -16,6 +16,8 @@ class Autoencoder(nn.Module):
         self.alpha_relu = args.alpha_relu
         self.alpha_sigmoid = args.alpha_sigmoid
         self.initialisation = args.initialisation
+        self.dropout = args.dropout
+        self.dropout_prob = args.dropout_prob
         self.verbose = args.verbose
         self.param_relu = param_relu(self.alpha_relu)
         self.param_sigmoid = param_sigmoid(self.alpha_sigmoid)
@@ -29,10 +31,16 @@ class Autoencoder(nn.Module):
         self.activation_encoder = []
         self.encoder.append(nn.Flatten())
         self.activation_encoder.append('linear')
+        if self.dropout:
+            self.encoder.append(nn.Dropout(p=self.dropout_prob))
+            self.activation_encoder.append('linear')
         # Encoder hidden layers
         for k in range(steps-1):
             self.encoder.append(nn.Linear(self.layers[k], self.layers[k+1]))
             self.activation_encoder.append(self.act_hid)
+            if self.dropout:
+                self.encoder.append(nn.Dropout(p=self.dropout_prob))
+                self.activation_encoder.append('linear')
         # Code
         self.encoder.append(nn.Linear(self.layers[-2], self.layers[-1]))
         self.activation_encoder.append(self.act_code)
@@ -43,6 +51,9 @@ class Autoencoder(nn.Module):
         for k in range(steps-1):
             self.decoder.append(nn.Linear(self.layers[steps-k], self.layers[steps-k-1]))
             self.activation_decoder.append(self.act_hid)
+            if self.dropout:
+                self.decoder.append(nn.Dropout(p=self.dropout_prob))
+                self.activation_decoder.append('linear')
         # Add last decoder layer
         self.decoder.append(nn.Linear(self.layers[1], self.layers[0]))
         self.activation_decoder.append(self.act_out)
@@ -66,6 +77,9 @@ class Autoencoder(nn.Module):
             data.append(['relu initial alpha', self.alpha_relu])
         if self.act_out == 'param_sigmoid':
             data.append(['sigmoid initial alpha', self.alpha_sigmoid])
+        data.append(['dropout', self.dropout])
+        if self.dropout:
+            data.append(['dropout prob', self.dropout_prob])
         
         summaryInfo(data, name, self.verbose)
 
