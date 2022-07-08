@@ -60,15 +60,23 @@ def addPlotNames(plotNames):
     for i, plotName in enumerate(reversed(plotNames)):
         plt.text(0.1, 0.12+0.14*i, plotName, fontsize=12, transform=plt.gcf().transFigure, rotation=90)
 
-def plotTraining(epochs, loss_train, loss_val, alphas):
+def plotTraining(epochs, model):
+    x_train = range(epochs)
+    x_val = range(1,epochs+1)
+    
     plt.figure()
-    plt.plot(range(epochs), loss_train)
-    plt.plot(range(1,epochs+1), loss_val)
+    plt.plot(x_train, model.loss_train, 'r')
+    plt.plot(x_val, model.loss_val, 'k')
+    plt.plot(x_val, model.loss_val_image, 'b')
+    plt.legend(['tot train', 'tot val', 'image val'], loc='upper right')
+    
+    ax = plt.gca()
+    ax2=ax.twinx()
+    ax2.plot(x_val, model.loss_val_reg, 'm')
+    ax2.legend(['reg val'], loc='lower right')
     plt.title('Training losses')
     plt.ylabel('loss')
     plt.xlabel('epoch')
-    plt.legend(['train_loss', 'val_loss'], loc='upper right')
-    ax = plt.gca()
     lims = ax.get_ylim()
     if lims[1] > 0.5:
         limsPlot = [lims[0], 0.5]
@@ -78,8 +86,8 @@ def plotTraining(epochs, loss_train, loss_val, alphas):
     savePlot('trainPlot.png')
 
     plt.figure()
-    plt.plot(range(epochs), alphas[0])
-    plt.plot(range(epochs), alphas[1])
+    plt.plot(range(epochs), model.alphas[0])
+    plt.plot(range(epochs), model.alphas[1])
     plt.title('Activation function parameters')
     plt.ylabel('alpha')
     plt.xlabel('epoch')

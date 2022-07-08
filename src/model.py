@@ -74,7 +74,7 @@ class Model(object):
                 break
         self.train_time = timeit.default_timer() - start
         if self.plot:
-            plotTraining(e+1, self.loss_train, self.loss_val, self.alphas)
+            plotTraining(e+1, self)
         __summary()
 
     def __trainEpoch(self):
