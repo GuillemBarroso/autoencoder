@@ -15,17 +15,12 @@ class Predict(object):
         self.code_size = args.layers[-1]
         if args.n_disp > len(self.x_test): args.n_disp = len(self.x_test)
         self.n_disp = args.n_disp
-        self.trunc_threshold = args.trunc_threshold
         self.verbose = args.verbose
         self.plot = args.plot
 
         self.loss_tot = None
         self.loss_image = None
         self.loss_reg = None
-        self.latent_trunc_size = None
-        self.loss_tot_trunc = None
-        self.loss_image_trunc = None
-        self.loss_reg_trunc = None
         self.zero_code_flag = None
         self.trunc_code_flag = None
 
@@ -38,12 +33,6 @@ class Predict(object):
             ['total test loss', '{:.2}'.format(self.loss_tot)],
             ['image test loss', '{:.2}'.format(self.loss_image)],
             ['reg test loss', '{:.2}'.format(self.loss_reg)],
-            ['----------', '----------'],
-            ['trunc threshold', '{}'.format(self.trunc_threshold)],
-            ['trunc code size', '{}'.format(self.latent_trunc_size)],
-            ['total trunc test loss', '{:.2}'.format(self.loss_tot_trunc)],
-            ['image trunc test loss', '{:.2}'.format(self.loss_image_trunc)],
-            ['reg trunc test loss', '{:.2}'.format(self.loss_reg_trunc)],
             ]
             summaryInfo(data, name, self.verbose)
 
@@ -52,11 +41,6 @@ class Predict(object):
             self.loss_tot, self.loss_image, self.loss_reg = computeLosses(pred, self.x_test.data, code, self.reg, self.reg_coef)
 
         self.zero_code_flag, self.active_code_size, self.avg_code_mag = codeInfo(code)
-        self.trunc_code_flag, code_trunc, self.latent_trunc_size  = truncCode(code, self.code_size, self.active_code_size, self.trunc_threshold)
-
-        with torch.no_grad():
-            pred_trunc = self.model.decode(code_trunc)
-            self.loss_tot_trunc, self.loss_image_trunc, self.loss_reg_trunc = computeLosses(pred_trunc, self.x_test.data, code_trunc, self.reg, self.reg_coef)
 
         # Select first n_disp test images for display
         x_test = self.x_test[:self.n_disp,:,:]
@@ -64,14 +48,11 @@ class Predict(object):
         code_dim = (code.shape[0], int(np.sqrt(self.code_size)), int(np.sqrt(self.code_size)))
         pred_dim = (pred.shape[0], self.resolution[0], self.resolution[1])
         code = reshape(code, code_dim)
-        code_trunc = reshape(code_trunc, code_dim)
         pred = reshape(pred, pred_dim)
-        pred_trunc = reshape(pred_trunc, pred_dim)
         
         __summary()
         if self.plot:
-            plotting(x_test, code, pred, code_trunc, pred_trunc, img_test, self.zero_code_flag,
-                    self.trunc_code_flag, self.data_class)
+            plotting(x_test, code, pred, img_test, self.zero_code_flag, self.trunc_code_flag, self.data_class)
             plotShow()
 
         

@@ -25,7 +25,6 @@ if __name__ == "__main__":
 
     # General parameters
     parser.add_argument('--dataset', '-d', default='ellipse2', type=str, help='name of the dataset')
-    parser.add_argument('--trunc_threshold', '-trunc_th', default=0.1, type=float, help='threshold to truncate the code after training')
     parser.add_argument('--verbose', '-vrb', default=True, type=bool, help='display information on command window')
     parser.add_argument('--plot', '-plt', default=True, type=bool, help='plot training and predictions in figures and save pngs')
 

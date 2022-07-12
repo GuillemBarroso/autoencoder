@@ -36,7 +36,7 @@ class Model(object):
         self.train_time = None
         self.early_stop_count = 0
         self.loss_prev_best = self.early_stop_tol*1e15
-        self.optimiser = torch.optim.Adam(model.parameters(), lr=self.learning_rate, weight_decay=1e-4)
+        self.optimiser = torch.optim.Adam(model.parameters(), lr=self.learning_rate, weight_decay=0)
         self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimiser, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
 
     def train(self):

@@ -28,9 +28,9 @@ def plotZeroCode(code_size, plot_code, colour):
                 plt.scatter(x,y, color=colour,s=5)
             count += 1
 
-def plotting(input, code, pred, code_trunc, pred_trunc, img_names, zero_code, trunc_code, data_class):
-    nRows = 6
-    plotNames = ['X', 'code', 'X_NN', 'code trunc', 'X_NN trunc', 'fig data']
+def plotting(input, code, pred, img_names, zero_code, trunc_code, data_class):
+    nRows = 4
+    plotNames = ['X', 'code', 'X_NN', 'fig data']
     n_disp = len(input)
     plt.figure(figsize=(20, 8))
     for i in range(n_disp):
@@ -38,17 +38,13 @@ def plotting(input, code, pred, code_trunc, pred_trunc, img_names, zero_code, tr
         plotImage(code[i], nRows, n_disp, i+1+n_disp)
         plotZeroCode(len(code.data[0]), zero_code, 'blue')
         plotImage(pred[i], nRows, n_disp, i+1+2*n_disp)
-        plotImage(code_trunc[i], nRows, n_disp, i+1+3*n_disp)
-        plotZeroCode(len(code.data[0]), zero_code, 'blue')
-        plotZeroCode(len(code.data[0]), trunc_code, 'red')
-        plotImage(pred_trunc[i], nRows, n_disp, i+1+4*n_disp)
 
         # Display error for each test image
         mus = data_class.getMusFromImgName(img_names[i])
         img_error = torch.mean((pred[i]-input[i,:,:,0])**2)
 
         imageError = '{:.2}'.format(img_error.item())
-        ax = plt.subplot(nRows, n_disp, i + 1 + 5*n_disp)
+        ax = plt.subplot(nRows, n_disp, i + 1 + 3*n_disp)
         for imu in range(len(mus)):
             ax.text(0.15,0.5-(imu*0.2),'mu{} = {}'.format(imu+1, mus[imu]))
         ax.text(0.15,0.1,'loss = {}'.format(imageError))
