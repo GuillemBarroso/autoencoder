@@ -2,11 +2,12 @@ import torch
 import numpy as np
 import copy
 
-def computeLosses(pred, input, code, reg, reg_coef):
+def computeLosses(pred, input, model, reg, reg_coef):
         pred = torch.reshape(pred, input.shape)
         loss_image = torch.mean((pred-input)**2)
         if reg:
-            loss_reg = torch.mean(torch.abs(code))
+            # loss_reg = torch.mean(torch.abs(code))
+            loss_reg = sum(p.abs().sum() for p in model.parameters())
             loss_tot = loss_image + reg_coef*loss_reg
         else:
             loss_tot = loss_image; loss_reg = 0.0

@@ -128,7 +128,7 @@ class Model(object):
 
     def __evaluate(self, X):
         pred, code = self.model(X)
-        loss_tot, loss_image, loss_reg = computeLosses(pred, X, code, self.reg, self.reg_coef)
+        loss_tot, loss_image, loss_reg = computeLosses(pred, X, self.model, self.reg, self.reg_coef)
         return loss_tot, loss_image, loss_reg
 
     def __checkEarlyStop(self):

@@ -38,7 +38,7 @@ class Predict(object):
 
         with torch.no_grad():
             pred, code = self.model(self.x_test.data)
-            self.loss_tot, self.loss_image, self.loss_reg = computeLosses(pred, self.x_test.data, code, self.reg, self.reg_coef)
+            self.loss_tot, self.loss_image, self.loss_reg = computeLosses(pred, self.x_test.data, self.model, self.reg, self.reg_coef)
 
         self.zero_code_flag, self.active_code_size, self.avg_code_mag = codeInfo(code)
 
