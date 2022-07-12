@@ -5,7 +5,7 @@ import torch
 from sklearn.model_selection import train_test_split
 from src.test_data import getTestData
 from src.beam_homog_naming import BeamHomog
-from src.elipse_naming import Elipse
+from src.ellipse_naming import Ellipse
 from src.postprocess import summaryInfo
 
 
@@ -26,7 +26,7 @@ class Data(Dataset):
         self.n_val = None
         self.n_test = None
         self.data_class = None
-        self.implemented_data = ['beam_homog', 'beam_homog_test', 'elipse']
+        self.implemented_data = ['beam_homog', 'beam_homog_test', 'ellipse', 'ellipse2']
 
         self.dataset = args.dataset
         self.random_test_data = args.random_test_data
@@ -185,8 +185,10 @@ class Data(Dataset):
     def __getDataClass(self):
         if self.dataset == 'beam_homog' or self.dataset == 'beam_homog_test':
             self.data_class = BeamHomog()
-        elif self.dataset == 'elipse':
-            self.data_class = Elipse()
+        elif self.dataset == 'ellipse':
+            self.data_class = Ellipse([1/2, 2])
+        elif self.dataset == 'ellipse2':
+            self.data_class = Ellipse([1/5, 5])
 
     def __normaliseData(self, x_train, x_val, x_test):
         x_train = self.__normaliseArray(x_train)

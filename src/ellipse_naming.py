@@ -3,13 +3,15 @@ import matplotlib.pyplot as plt
 from src.postprocess import savePlot
 
 
-class Elipse():
+class Ellipse():
+    def __init__(self, domain):
+        self.domain = domain
 
     def getMusFromImgName(self, name):
         return [float(name[name.find('mu')+2:name.find('png')-1])]
 
     def getMuDomain(self):
-            return np.linspace(0.5, 2, 2700)
+            return np.linspace(self.domain[0], self.domain[1], 2700)
 
     def plotDataset(self, mus_test_ext):
         mu = self.getMuDomain()
