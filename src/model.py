@@ -16,6 +16,7 @@ class Model(object):
         self.epochs = args.epochs
         self.batch_size = args.batch_size
         self.reg_coef = args.reg_coef
+        self.reg = args.reg
         self.early_stop_patience = args.early_stop_patience
         self.early_stop_tol = args.early_stop_tol
         self.verbose = args.verbose
@@ -49,7 +50,12 @@ class Model(object):
             ['epochs lr reduction', '{}'.format(self.lr_epoch_milestone)],
             ['lr reduction factor', '{:.0e}'.format(self.lr_red_coef)],
             ['training time', '{:.2}s/{:.3}min'.format(self.train_time, self.train_time/60)],
-            ['regularisation coef', '{:.0e}'.format(self.reg_coef)],
+            ['regularisation', '{:.0e}'.format(self.reg)],
+            ]
+            if self.reg:
+                data.append(['regularisation coef', '{:.0e}'.format(self.reg_coef)])
+
+            data = data + [
             ['total train loss', '{:.2}'.format(self.loss_train[-1])],
             ['image train loss', '{:.2}'.format(self.loss_train_image[-1])],
             ['reg train loss', '{:.2}'.format(self.loss_train_reg[-1])],
@@ -90,11 +96,14 @@ class Model(object):
             self.optimiser.step()
             self.scheduler.step()
 
+            if self.reg:
+                loss_reg = loss_reg.item()
+
             if batch % 100 == 0 and self.verbose:
-                print(f"tot_loss: {loss.item():>7f}, image_loss: {loss_image.item():>7f}, reg_loss: {loss_reg.item():>7f},  images: [{batch*len(X):>5d}/{len(self.x_train):>5d}]")
+                print(f"tot_loss: {loss.item():>7f}, image_loss: {loss_image.item():>7f}, reg_loss: {loss_reg:>7f},  images: [{batch*len(X):>5d}/{len(self.x_train):>5d}]")
         self.loss_train.append(loss.item())
         self.loss_train_image.append(loss_image.item())
-        self.loss_train_reg.append(loss_reg.item())
+        self.loss_train_reg.append(loss_reg)
         self.alphas[0].append(self.model.param_relu.alpha.item())
         self.alphas[1].append(self.model.param_sigmoid.alpha.item())
 
@@ -119,7 +128,7 @@ class Model(object):
 
     def __evaluate(self, X):
         pred, code = self.model(X)
-        loss_tot, loss_image, loss_reg = computeLosses(pred, X, code, self.reg_coef)
+        loss_tot, loss_image, loss_reg = computeLosses(pred, X, code, self.reg, self.reg_coef)
         return loss_tot, loss_image, loss_reg
 
     def __checkEarlyStop(self):

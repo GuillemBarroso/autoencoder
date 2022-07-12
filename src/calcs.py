@@ -2,11 +2,14 @@ import torch
 import numpy as np
 import copy
 
-def computeLosses(pred, input, code, reg_coef):
+def computeLosses(pred, input, code, reg, reg_coef):
         pred = torch.reshape(pred, input.shape)
         loss_image = torch.mean((pred-input)**2)
-        loss_reg = torch.mean(torch.abs(code))
-        loss_tot = loss_image + reg_coef*loss_reg
+        if reg:
+            loss_reg = torch.mean(torch.abs(code))
+            loss_tot = loss_image + reg_coef*loss_reg
+        else:
+            loss_tot = loss_image; loss_reg = 0.0
         return loss_tot, loss_image, loss_reg
 
 def codeInfo(code):

@@ -10,6 +10,7 @@ class Predict(object):
         self.resolution = data.resolution
         self.img_names = data.img_names
         self.data_class = data.data_class
+        self.reg = args.reg
         self.reg_coef = args.reg_coef
         self.code_size = args.layers[-1]
         if args.n_disp > len(self.x_test): args.n_disp = len(self.x_test)
@@ -48,14 +49,14 @@ class Predict(object):
 
         with torch.no_grad():
             pred, code = self.model(self.x_test.data)
-            self.loss_tot, self.loss_image, self.loss_reg = computeLosses(pred, self.x_test.data, code, self.reg_coef)
+            self.loss_tot, self.loss_image, self.loss_reg = computeLosses(pred, self.x_test.data, code, self.reg, self.reg_coef)
 
         self.zero_code_flag, self.active_code_size, self.avg_code_mag = codeInfo(code)
         self.trunc_code_flag, code_trunc, self.latent_trunc_size  = truncCode(code, self.code_size, self.active_code_size, self.trunc_threshold)
 
         with torch.no_grad():
             pred_trunc = self.model.decode(code_trunc)
-            self.loss_tot_trunc, self.loss_image_trunc, self.loss_reg_trunc = computeLosses(pred_trunc, self.x_test.data, code_trunc, self.reg_coef)
+            self.loss_tot_trunc, self.loss_image_trunc, self.loss_reg_trunc = computeLosses(pred_trunc, self.x_test.data, code_trunc, self.reg, self.reg_coef)
 
         # Select first n_disp test images for display
         x_test = self.x_test[:self.n_disp,:,:]
