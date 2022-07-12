@@ -19,8 +19,15 @@ class Autoencoder(nn.Module):
         self.dropout = args.dropout
         self.dropout_prob = args.dropout_prob
         self.verbose = args.verbose
-        self.param_relu = param_relu(self.alpha_relu)
-        self.param_sigmoid = param_sigmoid(self.alpha_sigmoid)
+        self.param_activation = False
+
+        if 'param_relu' in [self.act_out, self.act_hid, self.act_code]:
+            self.param_relu = param_relu(self.alpha_relu)
+            self.param_activation = True
+        if 'param_sigmoid' in [self.act_out, self.act_hid, self.act_code]:
+            self.param_sigmoid = param_sigmoid(self.alpha_sigmoid)
+            self.param_activation = True
+            
 
         # Add input layer with image resolution as dimensions
         self.layers = [resolution[0]*resolution[1]] + self.layers

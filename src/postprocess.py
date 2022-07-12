@@ -28,7 +28,7 @@ def plotZeroCode(code_size, plot_code, colour):
                 plt.scatter(x,y, color=colour,s=5)
             count += 1
 
-def plotting(input, code, pred, img_names, zero_code, trunc_code, data_class):
+def plotting(input, code, pred, img_names, zero_code, data_class):
     nRows = 4
     plotNames = ['X', 'code', 'X_NN', 'fig data']
     n_disp = len(input)
@@ -54,41 +54,42 @@ def plotting(input, code, pred, img_names, zero_code, trunc_code, data_class):
 
 def addPlotNames(plotNames):
     for i, plotName in enumerate(reversed(plotNames)):
-        plt.text(0.1, 0.12+0.14*i, plotName, fontsize=12, transform=plt.gcf().transFigure, rotation=90)
+        plt.text(0.1, 0.12+0.23*i, plotName, fontsize=12, transform=plt.gcf().transFigure, rotation=90)
 
-def plotTraining(epochs, model):
+def plotTraining(epochs, hist):
     x_train = range(epochs)
     x_val = range(1,epochs+1)
     
     plt.figure()
-    plt.plot(x_train, model.loss_train, 'r')
-    plt.plot(x_val, model.loss_val, 'k')
-    plt.plot(x_val, model.loss_val_image, 'b')
+    plt.plot(x_train, hist.loss_train, 'r')
+    plt.plot(x_val, hist.loss_val, 'k')
+    plt.plot(x_val, hist.loss_val_image, 'b')
     plt.legend(['tot train', 'tot val', 'image val'], loc='upper right')
     
     ax = plt.gca()
     ax2=ax.twinx()
-    ax2.plot(x_val, model.loss_val_reg, 'm')
+    ax2.plot(x_val, hist.loss_val_reg, 'm')
     ax2.legend(['reg val'], loc='lower right')
     plt.title('Training losses')
     plt.ylabel('loss')
     plt.xlabel('epoch')
-    lims = ax.get_ylim()
-    if lims[1] > 0.5:
-        limsPlot = [lims[0], 0.5]
-    else:
-        limsPlot = lims
-    ax.set_ylim(limsPlot)
+    # lims = ax.get_ylim()
+    # if lims[1] > 0.5:
+    #     limsPlot = [lims[0], 0.5]
+    # else:
+    #     limsPlot = lims
+    # ax.set_ylim(limsPlot)
     savePlot('trainPlot.png')
 
-    plt.figure()
-    plt.plot(range(epochs), model.alphas[0])
-    plt.plot(range(epochs), model.alphas[1])
-    plt.title('Activation function parameters')
-    plt.ylabel('alpha')
-    plt.xlabel('epoch')
-    plt.legend(['alpha ReLu', 'alpha Sigmoid'], loc='upper right')
-    savePlot('alphasPlot.png')
+    if hist.model.param_activation:
+        plt.figure()
+        plt.plot(range(epochs), hist.alphas[0])
+        plt.plot(range(epochs), hist.alphas[1])
+        plt.title('Activation function parameters')
+        plt.ylabel('alpha')
+        plt.xlabel('epoch')
+        plt.legend(['alpha ReLu', 'alpha Sigmoid'], loc='upper right')
+        savePlot('alphasPlot.png')
 
 def savePlot(name):
     plt.savefig('results/{}'.format(name))

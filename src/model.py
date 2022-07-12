@@ -50,7 +50,7 @@ class Model(object):
             ['epochs lr reduction', '{}'.format(self.lr_epoch_milestone)],
             ['lr reduction factor', '{:.0e}'.format(self.lr_red_coef)],
             ['training time', '{:.2}s/{:.3}min'.format(self.train_time, self.train_time/60)],
-            ['regularisation', '{:.0e}'.format(self.reg)],
+            ['regularisation', '{}'.format(self.reg)],
             ]
             if self.reg:
                 data.append(['regularisation coef', '{:.0e}'.format(self.reg_coef)])
@@ -104,8 +104,10 @@ class Model(object):
         self.loss_train.append(loss.item())
         self.loss_train_image.append(loss_image.item())
         self.loss_train_reg.append(loss_reg)
-        self.alphas[0].append(self.model.param_relu.alpha.item())
-        self.alphas[1].append(self.model.param_sigmoid.alpha.item())
+
+        if self.model.param_activation:
+            self.alphas[0].append(self.model.param_relu.alpha.item())
+            self.alphas[1].append(self.model.param_sigmoid.alpha.item())
 
     def __valEpoch(self):
         with torch.no_grad():

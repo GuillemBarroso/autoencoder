@@ -22,7 +22,6 @@ class Predict(object):
         self.loss_image = None
         self.loss_reg = None
         self.zero_code_flag = None
-        self.trunc_code_flag = None
 
     def evaluate(self):
         def __summary():
@@ -52,7 +51,7 @@ class Predict(object):
         
         __summary()
         if self.plot:
-            plotting(x_test, code, pred, img_test, self.zero_code_flag, self.trunc_code_flag, self.data_class)
+            plotting(x_test, code, pred, img_test, self.zero_code_flag, self.data_class)
             plotShow()
 
         
