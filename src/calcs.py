@@ -6,11 +6,27 @@ def computeLosses(pred, input, model, reg, reg_coef):
         pred = torch.reshape(pred, input.shape)
         loss_image = torch.mean((pred-input)**2)
         if reg:
+            # Zaragoza regularisation: 
             # loss_reg = torch.mean(torch.abs(code))
-            loss_reg = sum(p.abs().sum() for p in model.parameters())
+
+            # L2 regularisation
+            loss_reg = sum(p.pow(2.0).sum() for p in model.parameters())
+
+            # L1 regularization
+            # loss_reg = sum(p.abs().sum() for p in model.parameters())
+
+            # L1 regularisation but not on activation funct parameters
+            # loss_reg = sum(p.abs().sum() for name, p in model.named_parameters() if not 'param_relu' in name or 'param_sigmoid' in name)
+            
+            # L0 regularisation not working because its non differentiable
+            # loss_reg = 0
+            # for param in model.parameters():
+            #     loss_reg += torch.count_nonzero(param)
+
+            # L0 regularisation from paper
             loss_tot = loss_image + reg_coef*loss_reg
         else:
-            loss_tot = loss_image; loss_reg = 0.0
+            loss_tot = loss_image; loss_reg = torch.tensor(0.0)
         return loss_tot, loss_image, loss_reg
 
 def codeInfo(code):

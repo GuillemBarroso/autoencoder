@@ -36,7 +36,7 @@ class Model(object):
         self.train_time = None
         self.early_stop_count = 0
         self.loss_prev_best = self.early_stop_tol*1e15
-        self.optimiser = torch.optim.Adam(model.parameters(), lr=self.learning_rate, weight_decay=0)
+        self.optimiser = torch.optim.Adam(model.parameters(), lr=self.learning_rate, weight_decay=1e-4)
         self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimiser, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
 
     def train(self):
@@ -96,14 +96,11 @@ class Model(object):
             self.optimiser.step()
             self.scheduler.step()
 
-            if self.reg:
-                loss_reg = loss_reg.item()
-
             if batch % 100 == 0 and self.verbose:
-                print(f"tot_loss: {loss.item():>7f}, image_loss: {loss_image.item():>7f}, reg_loss: {loss_reg:>7f},  images: [{batch*len(X):>5d}/{len(self.x_train):>5d}]")
+                print(f"tot_loss: {loss.item():>7f}, image_loss: {loss_image.item():>7f}, reg_loss: {loss_reg.item():>7f},  images: [{batch*len(X):>5d}/{len(self.x_train):>5d}]")
         self.loss_train.append(loss.item())
         self.loss_train_image.append(loss_image.item())
-        self.loss_train_reg.append(loss_reg)
+        self.loss_train_reg.append(loss_reg.item())
 
         if self.model.param_activation:
             self.alphas[0].append(self.model.param_relu.alpha.item())
