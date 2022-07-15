@@ -1,20 +1,22 @@
 import torch
 import math
 import timeit
-from src.postprocess_mu import plotTraining, summaryInfo, addLossesToList, storeLossInfo
+from src.postprocess_mu import plotTraining, summaryInfo, addLossesToList, storeLossInfo, reshape
 from src.calcs_mu import computeLosses
 
 
 class Model(object):
-    def __init__(self, model, data, args):
-        self.learning_rate = args.learning_rate
-        self.lr_epoch_milestone = args.lr_epoch_milestone
-        self.lr_red_coef = args.lr_red_coef
-        self.model = model
+    def __init__(self, encoder, decoder, parameter, data, args):
+        self.encoder = encoder
+        self.decoder = decoder
+        self.parameter = parameter
         self.x_train = data.x_train
         self.x_val = data.x_val
         self.mus_train = data.mus_train
         self.mus_val = data.mus_val
+        self.learning_rate = args.learning_rate
+        self.lr_epoch_milestone = args.lr_epoch_milestone
+        self.lr_red_coef = args.lr_red_coef
         self.epochs = args.epochs
         self.batch_size = args.batch_size
         self.reg_coef = args.reg_coef
@@ -33,11 +35,15 @@ class Model(object):
         self.early_stop_count = 0
         self.loss_prev_best = self.early_stop_tol*1e15
         
-        self.loss_train = [[] for x in range(len(self.model.loss_names))]
-        self.loss_val = [[] for x in range(len(self.model.loss_names))]
+        self.loss_train = [[] for x in range(len(self.encoder.loss_names))]
+        self.loss_val = [[] for x in range(len(self.encoder.loss_names))]
 
-        self.optimiser = torch.optim.Adam(model.parameters(), lr=self.learning_rate, weight_decay=1e-4)
-        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimiser, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
+        self.optim_encoder = torch.optim.Adam(self.encoder.parameters(), lr=self.learning_rate, weight_decay=0)
+        self.optim_decoder = torch.optim.Adam(self.decoder.parameters(), lr=self.learning_rate, weight_decay=0)
+        self.optim_param = torch.optim.Adam(self.parameter.parameters(), lr=self.learning_rate, weight_decay=0)
+        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optim_encoder, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
+        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optim_decoder, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
+        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optim_param, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
 
     def train(self):
         def __summary():
@@ -56,11 +62,11 @@ class Model(object):
                 data.append(['regularisation coef', '{:.0e}'.format(self.reg_coef)])
 
             if self.act_hid == 'param_relu' or self.act_code == 'param_relu':
-                data.append(['relu optim alpha', self.model.param_relu.alpha.item()])
+                data.append(['relu optim alpha', self.encoder.param_relu.alpha.item()])
             if self.act_out == 'param_sigmoid':
-                data.append(['sigmoid optim alpha', self.model.param_sigmoid.alpha.item()])
-            data = addLossesToList(self.loss_train, 'test', self.model.loss_names, data)
-            data = addLossesToList(self.loss_val, 'val', self.model.loss_names, data)
+                data.append(['sigmoid optim alpha', self.encoder.param_sigmoid.alpha.item()])
+            data = addLossesToList(self.loss_train, 'test', self.encoder.loss_names, data)
+            data = addLossesToList(self.loss_val, 'val', self.encoder.loss_names, data)
             summaryInfo(data, name, self.verbose)
 
         start = timeit.default_timer()
@@ -86,18 +92,23 @@ class Model(object):
 
             loss = self.__evaluate(X, mus)
 
-            self.optimiser.zero_grad()
+            self.optim_encoder.zero_grad()
+            self.optim_decoder.zero_grad()
+            self.optim_param.zero_grad()
             loss[0].backward()
-            self.optimiser.step()
+            self.optim_encoder.step()
+            self.optim_decoder.step()
+            self.optim_param.step()
             self.scheduler.step()
+
             if self.verbose:
                 self.__printTrainInfo(loss)
 
         storeLossInfo(loss, self.loss_train)
 
-        if self.model.param_activation:
-            self.alphas[0].append(self.model.param_relu.alpha.item())
-            self.alphas[1].append(self.model.param_sigmoid.alpha.item())
+        if self.encoder.param_activation:
+            self.alphas[0].append(self.encoder.param_relu.alpha.item())
+            self.alphas[1].append(self.encoder.param_sigmoid.alpha.item())
 
     def __valEpoch(self):
         with torch.no_grad():
@@ -117,8 +128,14 @@ class Model(object):
         return x[ini:end]
 
     def __evaluate(self, X, mus):
-        out = self.model(X, mus)
-        return computeLosses(out, X, self.model, self.reg, self.reg_coef)
+        code_nn = self.encoder(X)
+        code_mu = self.parameter(mus)
+        out_nn = self.decoder(code_nn)
+        out_mu = self.decoder(code_mu)
+        out_nn = reshape(out_nn, X.shape)
+        out_mu = reshape(out_mu, X.shape)
+        loss = computeLosses([out_nn, out_mu, code_nn, code_mu], X, self.encoder, self.reg, self.reg_coef)
+        return loss
 
     def __checkEarlyStop(self):
         loss_current = self.loss_val[2][-1]
@@ -138,5 +155,5 @@ class Model(object):
         info = f"ValError:\n" if val else f""
 
         for i, loss in enumerate(loss):
-            info += "{}: {:.6}, ".format(self.model.loss_names[i], loss)
+            info += "{}: {:.6}, ".format(self.encoder.loss_names[i], loss)
         print(info[:-2])

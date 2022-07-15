@@ -16,6 +16,8 @@ class Data(Dataset):
         self.x_test = None
         self.dimension = None
         self.resolution = None
+        self.resolution_mu = None
+        self.n_mus = None
         self.scale = None
         self.img_names = None
         self.img_names_test = []
@@ -173,6 +175,8 @@ class Data(Dataset):
 
         # Store extra info
         self.resolution = self.x_train.shape[1:]
+        self.resolution_mu = self.mus_train.shape[1:]
+        self.n_mus = self.mus_train.shape[-1]
         self.dimension = np.prod(self.resolution[0:2])
         self.scale = (self.x_train.min().item(), self.x_train.max().item())
         self.n_train = self.x_train.shape[0]

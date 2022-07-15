@@ -1,9 +1,8 @@
 import argparse
-from torchsummary import summary
 from src.load_data_mu import Data
-from src.arch_mu import AutoencoderParam
 from src.model_mu import Model
 from src.predict_mu import Predict
+from src.arch_mu import Encoder, Decoder, Parameter
 
 
 def main(args):
@@ -11,20 +10,20 @@ def main(args):
     data = Data(args)
 
     # Create autoencoder
-    model = AutoencoderParam(data.resolution, args)
-    # if args.verbose:
-        # summary(model, [data.resolution, 1])
+    encoder = Encoder(data, args)
+    decoder = Decoder(data, args)
+    parameter = Parameter(data, args)
 
     # Train and predict
-    Model(model, data, args).train()
-    Predict(model, data, args).evaluate()    
+    Model(encoder, decoder, parameter, data, args).train()
+    Predict(encoder, decoder, parameter, data, args).evaluate()    
     
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Autoencoder for image compression')
 
     # General parameters
-    parser.add_argument('--dataset', '-d', default='ellipse', type=str, help='name of the dataset')
+    parser.add_argument('--dataset', '-d', default='ellipse2', type=str, help='name of the dataset')
     parser.add_argument('--verbose', '-vrb', default=True, type=bool, help='display information on command window')
     parser.add_argument('--plot', '-plt', default=True, type=bool, help='plot training and predictions in figures and save pngs')
 
@@ -40,8 +39,8 @@ if __name__ == "__main__":
     parser.add_argument('--reg', '-reg', default=True, type=bool, help='if True, adds a regularisation term in the loss function')
     parser.add_argument('--reg_coef', '-reg_coef', default=1e-4, type=float, help='coefficient that multiplies the regularisation term in the loss function')
     
-    parser.add_argument('--early_stop_patience', '-es_pat', default=100, type=int, help='number of epochs that the early stopping criteria will wait before stopping training')
-    parser.add_argument('--early_stop_tol', '-es_tol', default=1e-2, type=float, help='tolerance that the early stopping will consider')
+    parser.add_argument('--early_stop_patience', '-es_pat', default=20, type=int, help='number of epochs that the early stopping criteria will wait before stopping training')
+    parser.add_argument('--early_stop_tol', '-es_tol', default=1e-3, type=float, help='tolerance that the early stopping will consider')
     
     parser.add_argument('--lr_epoch_milestone', '-lr_e', default=[1000], nargs='+', type=int, help='list of epochs in which learning rate will be decreased')
     parser.add_argument('--lr_red_coef','-lr_coef', default=7e-1, type=float, help='learning rate reduction factor')

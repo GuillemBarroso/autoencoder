@@ -2,6 +2,18 @@ import torch
 import numpy as np
 import copy
 
+def computeLoss_mu(out, input, model, reg, reg_coef):
+    loss_img = torch.mean((out-input)**2)
+    loss_tot = loss_img
+
+    if reg:
+        loss_reg = sum(p.pow(2.0).sum() for p in model.parameters())
+        loss_tot += reg_coef*loss_reg
+    else:
+        loss_reg = torch.tensor(0.0)
+
+    return [loss_tot, loss_img, loss_reg]
+
 def computeLosses(out, input, model, reg, reg_coef):
         X_nn = torch.reshape(out[0], input.shape)
         X_mu = torch.reshape(out[1], input.shape)

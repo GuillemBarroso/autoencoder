@@ -71,16 +71,11 @@ def plotTraining(epochs, hist):
 
     for loss in hist.loss_val:
         plt.plot(x_val, loss)
-    plt.legend([x + ' train' for x in hist.model.loss_names[:-1]] + [x + ' val' for x in hist.model.loss_names[:-1]], loc='upper right')
-    
-    ax = plt.gca()
-    ax2=ax.twinx()
-    ax2.plot(x_train, hist.loss_train[-1], 'k')
-    ax2.plot(x_val, hist.loss_val[-1], 'm')
-    ax2.legend(['reg loss train', 'reg loss val'], loc='lower right')
-    plt.title('Training losses')
-    plt.ylabel('loss')
+    plt.legend([x + ' train' for x in hist.encoder.loss_names] + [x + ' val' for x in hist.encoder.loss_names], loc='upper right')
+    plt.yscale('log')
     plt.xlabel('epoch')
+    plt.ylabel('log(loss)')
+    plt.title('Training and validation losses')
 
     # lims = ax.get_ylim()
     # if lims[1] > 0.5:
@@ -90,7 +85,7 @@ def plotTraining(epochs, hist):
     # ax.set_ylim(limsPlot)
     savePlot('trainPlot.png')
 
-    if hist.model.param_activation:
+    if hist.encoder.param_activation:
         plt.figure()
         plt.plot(range(epochs), hist.alphas[0])
         plt.plot(range(epochs), hist.alphas[1])
