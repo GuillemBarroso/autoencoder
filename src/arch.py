@@ -4,6 +4,7 @@ from torch import nn
 import torch.nn.functional as F
 import torch.nn.init as init
 from src.param_act_func import param_sigmoid, param_relu
+from src.postprocess import summaryInfo
 
 class Autoencoder(nn.Module):
     def __init__(self, data, args):
@@ -19,8 +20,9 @@ class Autoencoder(nn.Module):
         self.act_code = args.act_code
         self.act_out = args.act_out
         self.initialisation = args.initialisation
-        self.param_activation = False
         self.mode = args.mode
+        self.verbose = args.verbose
+        self.param_activation = False
 
         # Add input layer with image resolution as dimensions
         self.layers = [self.resolution[0]*self.resolution[1]] + self.layers
@@ -43,6 +45,30 @@ class Autoencoder(nn.Module):
         if 'param_sigmoid' in [self.act_out, self.act_hid, self.act_code]:
             self.param_sigmoid = param_sigmoid(self.alpha_sigmoid)
             self.param_activation = True
+
+        self.__summary()
+
+    def __summary(self):
+        name = 'results/archTable.png'
+        data = [['encoder/decoder layers', self.layers]]
+        if self.mode == 'parametric':
+            data.append(['parametric layers', self.layers_mu])
+        
+        data = data + [
+            ['weight init', self.initialisation],
+            ['act funct hid layers', self.act_hid],
+            ['act funct code layer', self.act_code],
+            ['act funct last layer', self.act_out],
+        ]
+        if self.act_hid == 'param_relu' or self.act_code == 'param_relu':
+            data.append(['relu initial alpha', self.alpha_relu])
+        if self.act_out == 'param_sigmoid':
+            data.append(['sigmoid initial alpha', self.alpha_sigmoid])
+        data.append(['dropout', self.dropout])
+        if self.dropout:
+            data.append(['dropout prob', self.dropout_prob])
+        
+        summaryInfo(data, name, self.verbose)
 
     def layersLoop(self, x, layers, activations):
             for i, layer in enumerate(layers):
