@@ -16,10 +16,16 @@ class Data(Dataset):
         self.x_test = None
         self.dimension = None
         self.resolution = None
+        self.resolution_mu = None
+        self.n_mus = None
         self.scale = None
         self.img_names = None
-        self.img_test_names = []
+        self.img_names_test = []
+        self.img_names_train = []
+        self.img_names_val = []
         self.mus_test = None
+        self.mus_train = None
+        self.mus_val = None
         self.mus_test_ext = None
         self.mus_plot = None
         self.n_train = None
@@ -42,6 +48,7 @@ class Data(Dataset):
 
         x_train, x_val, x_test = self.__normaliseData(x_train, x_val, x_test)
 
+        self.__getMus()
         self.__storeDataForTraining(x_train, x_val, x_test)
         self.__getTestImageParams()
         self.data_class.plotDataset(self.mus_test_ext)
@@ -133,10 +140,8 @@ class Data(Dataset):
 
     def __splitDataRandom(self, data):
         val_size = self.split_size/(1-self.split_size)
-        idx = range(len(data))
-        x_train, x_test, _, idx_test = train_test_split(data, idx, test_size=self.split_size, shuffle=True)
-        x_train, x_val = train_test_split(x_train, test_size=val_size, shuffle=True)
-        self.img_test_names = [self.img_names[x] for x in idx_test]
+        x_train, x_test, self.img_names_train, self.img_names_test = train_test_split(data, self.img_names, test_size=self.split_size, shuffle=True)
+        x_train, x_val, self.img_names_train, self.img_names_val = train_test_split(x_train, self.img_names_train, test_size=val_size, shuffle=True)
         return x_train, x_val, x_test
 
     def __splitDataManual(self, data):
@@ -164,9 +169,14 @@ class Data(Dataset):
         self.x_train = torch.from_numpy(x_train).float()
         self.x_val = torch.from_numpy(x_val).float()
         self.x_test = torch.from_numpy(x_test).float()
+        self.mus_train = torch.from_numpy(np.asarray(self.mus_train)).float()
+        self.mus_val = torch.from_numpy(np.asarray(self.mus_val)).float()
+        self.mus_test = torch.from_numpy(np.asarray(self.mus_test)).float()
 
         # Store extra info
         self.resolution = self.x_train.shape[1:]
+        self.resolution_mu = self.mus_train.shape[1:]
+        self.n_mus = self.mus_train.shape[-1]
         self.dimension = np.prod(self.resolution[0:2])
         self.scale = (self.x_train.min().item(), self.x_train.max().item())
         self.n_train = self.x_train.shape[0]
@@ -175,7 +185,7 @@ class Data(Dataset):
 
     def __getTestImageParams(self):
         is_first = True
-        for name in self.img_test_names:
+        for name in self.img_names_test:
             mus = self.data_class.getMusFromImgName(name)
             if is_first: 
                 self.mus_test_ext = [[] for x in range(len(mus))]; is_first = False
@@ -199,6 +209,10 @@ class Data(Dataset):
     def __normaliseArray(self, arr):
         return (arr.astype('float32') - np.amin(arr)) / (np.amax(arr) - np.amin(arr) )
 
+    def __getMus(self):
+        self.mus_train = [self.data_class.getMusFromImgName(name) for name in self.img_names_train]
+        self.mus_val = [self.data_class.getMusFromImgName(name) for name in self.img_names_val]
+        self.mus_test = [self.data_class.getMusFromImgName(name) for name in self.img_names_test]
 
 def getStringsSpaceSeparated(line):
     return line[:-1].split(" ")

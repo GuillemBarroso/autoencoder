@@ -28,51 +28,76 @@ def plotZeroCode(code_size, plot_code, colour):
                 plt.scatter(x,y, color=colour,s=5)
             count += 1
 
-def plotting(input, code, pred, img_names, zero_code, data_class):
-    nRows = 4
-    plotNames = ['X', 'code', 'X_NN', 'fig data']
+def plotting(input, out, img_names, zero_code, data_class, mode):
+    
     n_disp = len(input)
-    plt.figure(figsize=(20, 8))
-    for i in range(n_disp):
-        plotImage(input[i], nRows, n_disp, i+1)
-        plotImage(code[i], nRows, n_disp, i+1+n_disp)
-        plotZeroCode(len(code.data[0]), zero_code, 'blue')
-        plotImage(pred[i], nRows, n_disp, i+1+2*n_disp)
 
-        # Display error for each test image
-        mus = data_class.getMusFromImgName(img_names[i])
-        img_error = torch.mean((pred[i]-input[i,:,:,0])**2)
+    if mode == 'parametric':
+        X_nn = out[0]
+        X_mu = out[1]
+        code_nn = out[2]
+        code_mu = out[3]
+        plotNames = ['X', 'code_nn', 'X_NN', 'code_mu', 'X_mu', 'fig data']
+        nRows = len(plotNames)
+        plt.figure(figsize=(20, 8))
+        for i in range(n_disp):
+            plotImage(input[i], nRows, n_disp, i+1)
+            plotImage(code_nn[i], nRows, n_disp, i+1+n_disp)
+            plotZeroCode(len(code_nn.data[0]), zero_code[0], 'red')
+            plotImage(X_nn[i], nRows, n_disp, i+1+2*n_disp)
+            plotImage(code_mu[i], nRows, n_disp, i+1+3*n_disp)
+            plotZeroCode(len(code_mu.data[0]), zero_code[1], 'red')
+            plotImage(X_mu[i], nRows, n_disp, i+1+4*n_disp)
 
-        imageError = '{:.2}'.format(img_error.item())
-        ax = plt.subplot(nRows, n_disp, i + 1 + 3*n_disp)
-        for imu in range(len(mus)):
-            ax.text(0.15,0.5-(imu*0.2),'mu{} = {}'.format(imu+1, mus[imu]))
-        ax.text(0.15,0.1,'loss = {}'.format(imageError))
-        ax.axis('off')
-    addPlotNames(plotNames)
+            # Display error for each test image
+            mus = data_class.getMusFromImgName(img_names[i])
+            img_error = [torch.mean((X_nn[i]-input[i,:,:,0])**2), torch.mean((X_mu[i]-input[i,:,:,0])**2)]
+
+            imageError_nn = '{:.2}'.format(img_error[0].item())
+            imageError_mu = '{:.2}'.format(img_error[1].item())
+            ax = plt.subplot(nRows, n_disp, i + 1 + 5*n_disp)
+            for imu in range(len(mus)):
+                ax.text(0.15,0.5-(imu*0.13),'mu{} = {}'.format(imu+1, mus[imu]))
+            ax.text(0.15,0.1,'loss_image_nn = {}'.format(imageError_nn))
+            ax.text(0.15,-0.08,'loss_image_mu = {}'.format(imageError_mu))
+            ax.axis('off')
+        addPlotNames(plotNames)
+    elif mode == 'standard':
+        X_nn = out[0]
+        code = out[1]
+        plotNames = ['X', 'code', 'X_NN', 'fig data']
+        nRows = len(plotNames)
+        plt.figure(figsize=(20, 8))
+        for i in range(n_disp):
+            plotImage(input[i], nRows, n_disp, i+1)
+            plotImage(code[i], nRows, n_disp, i+1+n_disp)
+            plotZeroCode(len(code.data[0]), zero_code[0], 'red')
+            plotImage(X_nn[i], nRows, n_disp, i+1+2*n_disp)
+    else:
+        raise NotImplementedError
+        
     savePlot('predictsPlot.png')
 
 def addPlotNames(plotNames):
     for i, plotName in enumerate(reversed(plotNames)):
-        plt.text(0.1, 0.12+0.23*i, plotName, fontsize=12, transform=plt.gcf().transFigure, rotation=90)
+        plt.text(0.1, 0.13+0.14*i, plotName, fontsize=12, transform=plt.gcf().transFigure, rotation=90)
 
 def plotTraining(epochs, hist):
     x_train = range(epochs)
     x_val = range(1,epochs+1)
     
     plt.figure()
-    plt.plot(x_train, hist.loss_train, 'r')
-    plt.plot(x_val, hist.loss_val, 'k')
-    plt.plot(x_val, hist.loss_val_image, 'b')
-    plt.legend(['tot train', 'tot val', 'image val'], loc='upper right')
-    
-    ax = plt.gca()
-    ax2=ax.twinx()
-    ax2.plot(x_val, hist.loss_val_reg, 'm')
-    ax2.legend(['reg val'], loc='lower right')
-    plt.title('Training losses')
-    plt.ylabel('loss')
+    for loss in hist.loss_train:
+        plt.plot(x_train, loss)
+
+    for loss in hist.loss_val:
+        plt.plot(x_val, loss)
+    plt.legend([x + ' train' for x in hist.encoder.loss_names] + [x + ' val' for x in hist.encoder.loss_names], loc='upper right')
+    plt.yscale('log')
     plt.xlabel('epoch')
+    plt.ylabel('log(loss)')
+    plt.title('Training and validation losses')
+
     # lims = ax.get_ylim()
     # if lims[1] > 0.5:
     #     limsPlot = [lims[0], 0.5]
@@ -81,7 +106,7 @@ def plotTraining(epochs, hist):
     # ax.set_ylim(limsPlot)
     savePlot('trainPlot.png')
 
-    if hist.model.param_activation:
+    if hist.encoder.param_activation:
         plt.figure()
         plt.plot(range(epochs), hist.alphas[0])
         plt.plot(range(epochs), hist.alphas[1])
@@ -96,3 +121,12 @@ def savePlot(name):
 
 def plotShow():
     plt.show()
+
+def addLossesToList(losses, mode, loss_names, data=[]):
+    for i, loss in enumerate(losses): 
+        data.append(['{} {}'.format(loss_names[i], mode), '{:.2}'.format(loss[-1])])
+    return data
+
+def storeLossInfo(losses, lossStore):
+        for i, loss in enumerate(losses):
+            lossStore[i].append(loss.item())
