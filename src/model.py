@@ -52,14 +52,14 @@ class Model(object):
         def __summary():
             name = 'results/trainTable.png'
             data = [['epochs', self.epochs],
-            ['batch size', self.batch_size],
-            ['early stop patience', '{} epochs'.format(self.early_stop_patience)],
-            ['early stop tol', '{:.0e}'.format(self.early_stop_tol)],
-            ['initial learning rate', '{:.0e}'.format(self.learning_rate)],
-            ['epochs lr reduction', '{}'.format(self.lr_epoch_milestone)],
-            ['lr reduction factor', '{:.0e}'.format(self.lr_red_coef)],
-            ['training time', '{:.2}s/{:.3}min'.format(self.train_time, self.train_time/60)],
-            ['regularisation', '{}'.format(self.reg)],
+                ['batch size', self.batch_size],
+                ['early stop patience', '{} epochs'.format(self.early_stop_patience)],
+                ['early stop tol', '{:.0e}'.format(self.early_stop_tol)],
+                ['initial learning rate', '{:.0e}'.format(self.learning_rate)],
+                ['epochs lr reduction', '{}'.format(self.lr_epoch_milestone)],
+                ['lr reduction factor', '{:.0e}'.format(self.lr_red_coef)],
+                ['training time', '{:.2}s/{:.3}min'.format(self.train_time, self.train_time/60)],
+                ['regularisation', '{}'.format(self.reg)],
             ]
             if self.reg:
                 data.append(['regularisation coef', '{:.0e}'.format(self.reg_coef)])
