@@ -145,6 +145,7 @@ class Data(Dataset):
         return x_train, x_val, x_test
 
     def __splitDataManual(self, data):
+        # TODO: also add self.img_names_train, test and val for manual test data selection!
         self.mus_test, self.mus_plot = getTestData()
         self.test_names, _, _ = self.data_class.getImageNamesFromMus(self.mus_test[0], self.mus_test[1])
 

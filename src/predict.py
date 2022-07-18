@@ -6,6 +6,7 @@ import numpy as np
 class Predict(object):
     def __init__(self, autoencoder, data, args):
         self.x_test = data.x_test
+        self.n_test = data.n_test
         self.mus_test = data.mus_test
         self.resolution = data.resolution
         self.img_names_test = data.img_names_test
@@ -31,6 +32,8 @@ class Predict(object):
         self.zero_code_flag_mu = None
         self.active_code_size_mu = None
         self.avg_code_mag_mu = None
+        self.code_dim = (self.n_test, int(np.sqrt(self.code_size)), int(np.sqrt(self.code_size)))
+        self.img_dim = (self.n_test, self.resolution[0], self.resolution[1])
 
     def evaluate(self):
         def __summary():
@@ -52,45 +55,37 @@ class Predict(object):
                 code_mu = self.parameter(self.mus_test.data)
                 X_nn = self.decoder(code_nn)
                 X_mu = self.decoder(code_mu)
-                X_nn = reshape(X_nn, self.x_test.data.shape)
-                X_mu = reshape(X_mu, self.x_test.data.shape)
-                
 
                 # Reshape arrays for plotting
-                code_dim = (code_nn.shape[0], int(np.sqrt(self.code_size)), int(np.sqrt(self.code_size)))
-                X_dim = (X_nn.shape[0], self.resolution[0], self.resolution[1])
-                code_nn = reshape(code_nn, code_dim)
-                code_mu = reshape(code_mu, code_dim)
-                X_nn = reshape(X_nn, X_dim)
-                X_mu = reshape(X_mu, X_dim)
+                code_nn = reshape(code_nn, self.code_dim)
+                code_mu = reshape(code_mu, self.code_dim)
+                X_nn = reshape(X_nn, self.img_dim)
+                X_mu = reshape(X_mu, self.img_dim)
 
                 out = [X_nn, X_mu, code_nn, code_mu]
 
             elif self.mode == 'standard':
-                code = self.encoder(self.x_test.data)
-                X_nn = self.decoder(code)
+                code_nn = self.encoder(self.x_test.data)
+                X_nn = self.decoder(code_nn)
 
                 # Reshape arrays for plotting
-                code_dim = (code.shape[0], int(np.sqrt(self.code_size)), int(np.sqrt(self.code_size)))
-                X_dim = (X_nn.shape[0], self.resolution[0], self.resolution[1])
-                code = reshape(code, code_dim)
-                X_nn = reshape(X_nn, X_dim)
-                out = [X_nn, code]
+                code_nn = reshape(code_nn, self.code_dim)
+                X_nn = reshape(X_nn, self.img_dim)
+                out = [X_nn, code_nn]
             else:
                 raise NotImplementedError
 
             loss = computeLosses(out, self.x_test.data, self.encoder, self.reg, self.reg_coef, self.mode)
+
         storeLossInfo(loss, self.loss_test)
 
         # Get information on both codes
-        if self.mode == 'standard':
-            self.zero_code_flag, self.active_code_size, self.avg_code_mag = codeInfo(code)
-            zero_code = [self.zero_code_flag]
+        self.zero_code_flag, self.active_code_size, self.avg_code_mag = codeInfo(code_nn)
+        zero_code = [self.zero_code_flag]
 
         if self.mode == 'parametric':
-            self.zero_code_flag, self.active_code_size, self.avg_code_mag = codeInfo(code_nn)
             self.zero_code_flag_mu, self.active_code_size_mu, self.avg_code_mag_mu = codeInfo(code_mu)
-            zero_code = [self.zero_code_flag, self.zero_code_flag_mu]
+            zero_code += [self.zero_code_flag_mu]
 
         # Select first n_disp test images for display
         x_test = self.x_test[:self.n_disp,:,:]

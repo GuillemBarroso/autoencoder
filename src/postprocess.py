@@ -62,6 +62,7 @@ def plotting(input, out, img_names, zero_code, data_class, mode):
             ax.text(0.15,-0.08,'loss_image_mu = {}'.format(imageError_mu))
             ax.axis('off')
         addPlotNames(plotNames)
+        
     elif mode == 'standard':
         X_nn = out[0]
         code = out[1]

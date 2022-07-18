@@ -102,9 +102,9 @@ class Model(object):
             loss[0].backward()
             self.optim_encoder.step()
             self.optim_decoder.step()
-            self.scheduler.step()
             if self.mode == 'parametric':
                 self.optim_param.step()
+            self.scheduler.step()
 
             if self.verbose:
                 self.__printTrainInfo(loss)
@@ -136,15 +136,12 @@ class Model(object):
         if self.mode == 'parametric':
             code_nn = self.encoder(X)
             code_mu = self.parameter(mus)
-            out_nn = self.decoder(code_nn)
-            out_mu = self.decoder(code_mu)
-            out_nn = reshape(out_nn, X.shape)
-            out_mu = reshape(out_mu, X.shape)
+            out_nn = reshape(self.decoder(code_nn), X.shape)
+            out_mu = reshape(self.decoder(code_mu), X.shape)
             out = [out_nn, out_mu, code_nn, code_mu]
         elif self.mode == 'standard':
             code = self.encoder(X)
-            out = self.decoder(code)
-            out = [out]
+            out = [self.decoder(code)]
         else: 
             raise NotImplementedError
 
