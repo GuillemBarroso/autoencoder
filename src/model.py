@@ -26,15 +26,18 @@ class Model(object):
         self.act_out = args.act_out
         self.act_code = args.act_code
         self.mode = args.mode
+        self.code_size = args.layers[-1]
+        self.losses_weights = args.losses_weights
         self.alphas = [[], []]
         self.best_loss_val = None
         self.stop_training = None
         self.train_time = None
         self.early_stop_count = 0
         self.loss_prev_best = self.early_stop_tol*1e15
+        self.n_train_params = 0
 
         self.encoder = autoencoder[0]
-        self.decoder = autoencoder[1]            
+        self.decoder = autoencoder[1]           
         
         self.loss_train = [[] for x in range(len(self.encoder.loss_names))]
         self.loss_val = [[] for x in range(len(self.encoder.loss_names))]
@@ -45,14 +48,20 @@ class Model(object):
         self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optim_decoder, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
         if self.mode == 'parametric':
             self.parameter = autoencoder[2]
+            self.n_train_params += self.__count_parameters(self.parameter)
             self.optim_param = torch.optim.Adam(self.parameter.parameters(), lr=self.learning_rate, weight_decay=0)
             self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optim_param, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
+
+        self.n_train_params += self.__count_parameters(self.encoder)
+        self.n_train_params += self.__count_parameters(self.decoder)
+        data.n_train_params = self.n_train_params # store in data to be used during predicitons
 
     def train(self):
         def __summary():
             name = 'results/trainTable.png'
             data = [['epochs', self.epochs],
                 ['batch size', self.batch_size],
+                ['num train params', self.n_train_params],
                 ['early stop patience', '{} epochs'.format(self.early_stop_patience)],
                 ['early stop tol', '{:.0e}'.format(self.early_stop_tol)],
                 ['initial learning rate', '{:.0e}'.format(self.learning_rate)],
@@ -145,7 +154,7 @@ class Model(object):
         else: 
             raise NotImplementedError
 
-        loss = computeLosses(out, X, self.encoder, self.reg, self.reg_coef, self.mode)
+        loss = computeLosses(out, X, self.encoder, self.reg, self.reg_coef, self.mode, self.n_train_params, self.losses_weights)
         return loss
 
     def __checkEarlyStop(self):
@@ -168,3 +177,6 @@ class Model(object):
         for i, loss in enumerate(loss):
             info += "{}: {:.6}, ".format(self.encoder.loss_names[i], loss)
         print(info[:-2])
+
+    def __count_parameters(self, model): 
+        return sum(p.numel() for p in model.parameters() if p.requires_grad)

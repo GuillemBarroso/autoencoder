@@ -11,6 +11,7 @@ class Predict(object):
         self.resolution = data.resolution
         self.img_names_test = data.img_names_test
         self.data_class = data.data_class
+        self.n_train_params = data.n_train_params
         self.reg = args.reg
         self.reg_coef = args.reg_coef
         self.code_size = args.layers[-1]
@@ -19,6 +20,7 @@ class Predict(object):
         self.verbose = args.verbose
         self.plot = args.plot
         self.mode = args.mode
+        self.losses_weights = args.losses_weights
 
         self.encoder = autoencoder[0]
         self.decoder = autoencoder[1]
@@ -75,7 +77,7 @@ class Predict(object):
             else:
                 raise NotImplementedError
 
-            loss = computeLosses(out, self.x_test.data, self.encoder, self.reg, self.reg_coef, self.mode)
+            loss = computeLosses(out, self.x_test.data, self.encoder, self.reg, self.reg_coef, self.mode, self.n_train_params, self.losses_weights)
 
         storeLossInfo(loss, self.loss_test)
 
