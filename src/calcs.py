@@ -35,11 +35,10 @@ def computeLosses(out, input, model, reg, reg_coef, mode, n_train_params, weight
         # for param in model.parameters():
         #     loss_reg += torch.count_nonzero(param)
         
-        # loss_reg = loss_reg*reg_coef
-    else:
-        loss_reg = torch.tensor(0.0)
+        loss.append(loss_reg)
+    # else:
+    #     loss_reg = torch.tensor(0.0)
 
-    loss.append(loss_reg)
 
     # Compute total loss to be optimised and place as the 0th entry of loss list
     loss_tot = sum(loss)

@@ -172,10 +172,10 @@ class Model(object):
             if self.verbose:
                 print('Early stop triggered')
 
-    def __printTrainInfo(self, loss, val=False):
+    def __printTrainInfo(self, losses, val=False):
         info = f"ValError:\n" if val else f""
 
-        for i, loss in enumerate(loss):
+        for i, loss in enumerate(losses):
             info += "{}: {:.6}, ".format(self.encoder.loss_names[i], loss)
         print(info[:-2])
 
