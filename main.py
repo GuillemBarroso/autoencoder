@@ -35,7 +35,7 @@ if __name__ == "__main__":
     parser.add_argument('--epochs', '-e', default=500, type=int, help='number of training epochs')
     parser.add_argument('--batch_size', '-bs', default=600, type=int, help='batch size')
     parser.add_argument('--learning_rate', '-lr', default=1e-3, type=float, help='training learning rate')
-    parser.add_argument('--losses_weights', '-weights', default=[1, 1, 1], type=float, help='Losses weights. "standard" mode -> [w_img], "parametric" mode ->[w_img_nn, w_img_mu, w_code]')
+    parser.add_argument('--losses_weights', '-weights', default=[1, 10, 1], type=float, help='Losses weights. "standard" mode -> [w_img], "parametric" mode ->[w_img_nn, w_img_mu, w_code]')
     
     parser.add_argument('--reg', '-reg', default=True, type=bool, help='if True, adds a regularisation term in the loss function')
     parser.add_argument('--reg_coef', '-reg_coef', default=1e-3, type=float, help='coefficient that multiplies the regularisation term in the loss function. Only for reg = True.')

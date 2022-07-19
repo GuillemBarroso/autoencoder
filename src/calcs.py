@@ -22,10 +22,10 @@ def computeLosses(out, input, model, reg, reg_coef, mode, n_train_params, weight
         # loss_reg = torch.mean(torch.abs(code))
 
         # L2 regularisation
-        loss_reg = sum(p.pow(2.0).sum() for p in model.parameters()) / n_train_params
+        # loss_reg = sum(p.pow(2.0).sum() for p in model.parameters()) / n_train_params * reg_coef
 
         # L1 regularization
-        # loss_reg = sum(p.abs().sum() for p in model.parameters())
+        loss_reg = sum(p.abs().sum() for p in model.parameters()) / n_train_params * reg_coef
 
         # L1 regularisation but not on activation funct parameters
         # loss_reg = sum(p.abs().sum() for name, p in model.named_parameters() if not 'param_relu' in name or 'param_sigmoid' in name)
@@ -35,7 +35,7 @@ def computeLosses(out, input, model, reg, reg_coef, mode, n_train_params, weight
         # for param in model.parameters():
         #     loss_reg += torch.count_nonzero(param)
         
-        loss_reg = loss_reg*reg_coef
+        # loss_reg = loss_reg*reg_coef
     else:
         loss_reg = torch.tensor(0.0)
 

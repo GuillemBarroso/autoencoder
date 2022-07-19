@@ -61,6 +61,7 @@ class Model(object):
             name = 'results/trainTable.png'
             data = [['epochs', self.epochs],
                 ['batch size', self.batch_size],
+                ['losses weights', self.losses_weights],
                 ['num train params', self.n_train_params],
                 ['early stop patience', '{} epochs'.format(self.early_stop_patience)],
                 ['early stop tol', '{:.0e}'.format(self.early_stop_tol)],
