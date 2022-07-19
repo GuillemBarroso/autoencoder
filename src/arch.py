@@ -31,8 +31,10 @@ class Autoencoder(nn.Module):
 
         if self.mode == 'standard':
             self.loss_names = ['total loss', 'image loss']
+            self.idx_early_stop = 1
         elif self.mode == 'parametric':
             self.loss_names = ['total loss', 'image nn loss', 'image mu loss', 'code loss']
+            self.idx_early_stop = 2
         else:
             raise NotImplementedError
 

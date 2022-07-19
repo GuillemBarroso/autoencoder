@@ -38,7 +38,7 @@ class Model(object):
 
         self.encoder = autoencoder[0]
         self.decoder = autoencoder[1]           
-        
+        self.idx_early_stop = self.encoder.idx_early_stop
         self.loss_train = [[] for x in range(len(self.encoder.loss_names))]
         self.loss_val = [[] for x in range(len(self.encoder.loss_names))]
 
@@ -159,7 +159,7 @@ class Model(object):
         return loss
 
     def __checkEarlyStop(self):
-        loss_current = self.loss_val[2][-1]
+        loss_current = self.loss_val[self.idx_early_stop][-1]
         
         if self.loss_prev_best - loss_current < self.early_stop_tol:
             self.early_stop_count += 1 
