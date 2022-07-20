@@ -36,6 +36,7 @@ class Model(object):
         self.loss_prev_best = self.early_stop_tol*1e15
         self.n_train_params = 0
 
+        self.autoencoder = autoencoder
         self.encoder = autoencoder[0]
         self.decoder = autoencoder[1]           
         self.idx_early_stop = self.encoder.idx_early_stop
@@ -151,11 +152,11 @@ class Model(object):
             out = [out_nn, out_mu, code_nn, code_mu]
         elif self.mode == 'standard':
             code = self.encoder(X)
-            out = [self.decoder(code)]
+            out = [self.decoder(code), code]
         else: 
             raise NotImplementedError
 
-        loss = computeLosses(out, X, self.encoder, self.reg, self.reg_coef, self.mode, self.n_train_params, self.losses_weights)
+        loss = computeLosses(out, X, self.autoencoder, self.reg, self.reg_coef, self.mode, self.n_train_params, self.losses_weights)
         return loss
 
     def __checkEarlyStop(self):

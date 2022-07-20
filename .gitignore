@@ -10,3 +10,4 @@ data/*
 !data/beam_homog_test
 
 src/*_DEL.py
+test.py

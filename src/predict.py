@@ -22,6 +22,7 @@ class Predict(object):
         self.mode = args.mode
         self.losses_weights = args.losses_weights
 
+        self.autoencoder = autoencoder
         self.encoder = autoencoder[0]
         self.decoder = autoencoder[1]
         if self.mode == 'parametric':
@@ -77,7 +78,7 @@ class Predict(object):
             else:
                 raise NotImplementedError
 
-            loss = computeLosses(out, self.x_test.data, self.encoder, self.reg, self.reg_coef, self.mode, self.n_train_params, self.losses_weights)
+            loss = computeLosses(out, self.x_test.data, self.autoencoder, self.reg, self.reg_coef, self.mode, self.n_train_params, self.losses_weights)
 
         storeLossInfo(loss, self.loss_test)
 
