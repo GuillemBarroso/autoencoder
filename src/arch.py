@@ -52,7 +52,8 @@ class Autoencoder(nn.Module):
 
     def __summary(self):
         name = 'results/archTable.png'
-        data = [['encoder/decoder layers', self.layers]]
+        data = [['autoencoder mode', self.mode],
+            ['encoder/decoder layers', self.layers]]
         if self.mode == 'parametric':
             data.append(['parametric layers', self.layers_mu])
         
