@@ -4,8 +4,7 @@ __pycache__/
 Icon?
 /.vscode
 
-results/*
-results_docxs/*
+results*
 data/*
 !data/beam_homog_test
 
