@@ -20,12 +20,12 @@ class Predict(object):
         self.verbose = args.verbose
         self.plot = args.plot
         self.mode = args.mode
-        self.losses_weights = args.losses_weights
+        self.code_coef = args.code_coef
 
         self.autoencoder = autoencoder
         self.encoder = autoencoder[0]
         self.decoder = autoencoder[1]
-        if self.mode == 'parametric':
+        if self.mode == 'combined':
             self.parameter = autoencoder[2]
 
         self.loss_test = [[] for x in range(len(self.encoder.loss_names))]
@@ -45,7 +45,7 @@ class Predict(object):
             ['code nn size/max size', '{}/{}'.format(self.active_code_size, self.code_size)],
             ['avg pixel magnitude nn', '{:.2}'.format(self.avg_code_mag)],
             ]
-            if self.mode == 'parametric':
+            if self.mode == 'combined':
                 data.append(['code mu size/max size', '{}/{}'.format(self.active_code_size_mu, self.code_size)])
                 data.append(['avg pixel magnitude mu', '{:.2}'.format(self.avg_code_mag_mu)])
 
@@ -53,7 +53,7 @@ class Predict(object):
             summaryInfo(data, name, self.verbose)
 
         with torch.no_grad():
-            if self.mode == 'parametric':
+            if self.mode == 'combined':
                 code_nn = self.encoder(self.x_test.data)
                 code_mu = self.parameter(self.mus_test.data)
                 X_nn = self.decoder(code_nn)
@@ -78,7 +78,7 @@ class Predict(object):
             else:
                 raise NotImplementedError
 
-            loss = computeLosses(out, self.x_test.data, self.autoencoder, self.reg, self.reg_coef, self.mode, self.n_train_params, self.losses_weights)
+            loss = computeLosses(out, self.x_test.data, self.autoencoder, self.reg, self.reg_coef, self.mode, self.n_train_params, self.code_coef)
 
         storeLossInfo(loss, self.loss_test)
 
@@ -86,7 +86,7 @@ class Predict(object):
         self.zero_code_flag, self.active_code_size, self.avg_code_mag = codeInfo(code_nn)
         zero_code = [self.zero_code_flag]
 
-        if self.mode == 'parametric':
+        if self.mode == 'combined':
             self.zero_code_flag_mu, self.active_code_size_mu, self.avg_code_mag_mu = codeInfo(code_mu)
             zero_code += [self.zero_code_flag_mu]
 

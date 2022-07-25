@@ -32,7 +32,7 @@ class Autoencoder(nn.Module):
         if self.mode == 'standard':
             self.loss_names = ['total loss', 'image loss']
             self.idx_early_stop = 1
-        elif self.mode == 'parametric':
+        elif self.mode == 'combined':
             self.loss_names = ['total loss', 'image nn loss', 'image mu loss', 'code loss']
             self.idx_early_stop = 2
         else:
@@ -54,8 +54,8 @@ class Autoencoder(nn.Module):
         name = 'results/archTable.png'
         data = [['autoencoder mode', self.mode],
             ['encoder/decoder layers', self.layers]]
-        if self.mode == 'parametric':
-            data.append(['parametric layers', self.layers_mu])
+        if self.mode == 'combined':
+            data.append(['combined layers', self.layers_mu])
         
         data = data + [
             ['weight init', self.initialisation],

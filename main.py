@@ -11,7 +11,7 @@ def main(args):
 
     # Create autoencoder
     autoencoder = [Encoder(data, args), Decoder(data, args)]
-    if args.mode == 'parametric':
+    if args.mode == 'combined':
         autoencoder.append(Parameter(data, args))
 
     # Train and predict
@@ -35,21 +35,20 @@ if __name__ == "__main__":
     parser.add_argument('--epochs', '-e', default=1000, type=int, help='number of training epochs')
     parser.add_argument('--batch_size', '-bs', default=600, type=int, help='batch size')
     parser.add_argument('--learning_rate', '-lr', default=1e-3, type=float, help='training learning rate')
-    parser.add_argument('--losses_weights', '-weights', default=[1e5, 1e5, 1e2], type=float, help='Losses weights. "standard" mode -> [w_img, _, _], "parametric" mode ->[w_img_nn, w_img_mu, w_code]')
-    
     parser.add_argument('--reg', '-reg', default=True, type=bool, help='if True, adds a regularisation term in the loss function')
-    parser.add_argument('--reg_coef', '-reg_coef', default=1e2, type=float, help='coefficient that multiplies the regularisation term in the loss function. Only for reg = True.')
+    parser.add_argument('--reg_coef', '-reg_coef', default=1e-3, type=float, help='coefficient that multiplies the regularisation term in the loss function. Only for reg = True.')
+    parser.add_argument('--code_coef', '-code_coef', default=1e-3, type=float, help='Coefficient of the code loss term. Only for mode = "combined".')
     
-    parser.add_argument('--early_stop_patience', '-es_pat', default=50, type=int, help='number of epochs that the early stopping criteria will wait before stopping training')
+    parser.add_argument('--early_stop_patience', '-es_pat', default=150, type=int, help='number of epochs that the early stopping criteria will wait before stopping training')
     parser.add_argument('--early_stop_tol', '-es_tol', default=0.1, type=float, help='relative tolerance (%) for the early stopping criteria')
     
     parser.add_argument('--lr_epoch_milestone', '-lr_e', default=[1000], nargs='+', type=int, help='list of epochs in which learning rate will be decreased')
     parser.add_argument('--lr_red_coef','-lr_coef', default=7e-1, type=float, help='learning rate reduction factor')
 
     # Architecture parameters
-    parser.add_argument('--mode','-m', default='parametric', type=str, help="autoencoder mode; 'standard' or 'parametric' options implemented")
+    parser.add_argument('--mode','-m', default='combined', type=str, help="autoencoder mode; 'standard' or 'combined' options implemented")
     parser.add_argument('--layers','-l', default=[200, 100, 25], nargs='+', type=int, help="autoencoder's neurons per layer (including code)")
-    parser.add_argument('--layers_mu','-l_mu', default=[50, 25], nargs='+', type=int, help="parameter NN's neurons per layer (including code). Only for mode = 'parametric'")
+    parser.add_argument('--layers_mu','-l_mu', default=[50, 25], nargs='+', type=int, help="parameter NN's neurons per layer (including code). Only for mode = 'combined'")
     parser.add_argument('--initialisation','-init', default='kaiming_uniform', type=str, help='weight initialisation method')
     
     parser.add_argument('--act_code','-act_code', default='relu', type=str, help="activaction function in encoder's last layer (code or latent space)")

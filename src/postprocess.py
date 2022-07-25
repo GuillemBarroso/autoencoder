@@ -41,7 +41,7 @@ def plotting(input, out, img_names, zero_code, data_class, mode):
     
     n_disp = len(input)
 
-    if mode == 'parametric':
+    if mode == 'combined':
         X_nn = out[0]
         X_mu = out[1]
         code_nn = out[2]

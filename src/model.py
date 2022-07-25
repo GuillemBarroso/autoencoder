@@ -27,7 +27,7 @@ class Model(object):
         self.act_code = args.act_code
         self.mode = args.mode
         self.code_size = args.layers[-1]
-        self.losses_weights = args.losses_weights
+        self.code_coef = args.code_coef
         self.alphas = [[], []]
         self.best_loss_val = None
         self.stop_training = None
@@ -47,7 +47,7 @@ class Model(object):
         self.optim_decoder = torch.optim.Adam(self.decoder.parameters(), lr=self.learning_rate, weight_decay=0)
         self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optim_encoder, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
         self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optim_decoder, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
-        if self.mode == 'parametric':
+        if self.mode == 'combined':
             self.parameter = autoencoder[2]
             self.n_train_params += self.__count_parameters(self.parameter)
             self.optim_param = torch.optim.Adam(self.parameter.parameters(), lr=self.learning_rate, weight_decay=0)
@@ -62,7 +62,6 @@ class Model(object):
             name = 'results/trainTable.png'
             data = [['epochs', self.epochs],
                 ['batch size', self.batch_size],
-                ['losses weights', self.losses_weights],
                 ['num train params', self.n_train_params],
                 ['early stop patience', '{} epochs'.format(self.early_stop_patience)],
                 ['early stop tol', '{:.0e} %'.format(self.early_stop_tol)],
@@ -74,6 +73,8 @@ class Model(object):
             ]
             if self.reg:
                 data.append(['regularisation coef', '{:.0e}'.format(self.reg_coef)])
+            if self.mode == 'combined':
+                data.append(['code coef', self.code_coef])
 
             if self.act_hid == 'param_relu' or self.act_code == 'param_relu':
                 data.append(['relu optim alpha', self.encoder.param_relu.alpha.item()])
@@ -108,12 +109,12 @@ class Model(object):
 
             self.optim_encoder.zero_grad()
             self.optim_decoder.zero_grad()
-            if self.mode == 'parametric':
+            if self.mode == 'combined':
                 self.optim_param.zero_grad()
             loss[0].backward()
             self.optim_encoder.step()
             self.optim_decoder.step()
-            if self.mode == 'parametric':
+            if self.mode == 'combined':
                 self.optim_param.step()
             self.scheduler.step()
 
@@ -144,7 +145,7 @@ class Model(object):
         return x[ini:end]
 
     def __evaluate(self, X, mus):
-        if self.mode == 'parametric':
+        if self.mode == 'combined':
             code_nn = self.encoder(X)
             code_mu = self.parameter(mus)
             out_nn = reshape(self.decoder(code_nn), X.shape)
@@ -156,7 +157,7 @@ class Model(object):
         else: 
             raise NotImplementedError
 
-        loss = computeLosses(out, X, self.autoencoder, self.reg, self.reg_coef, self.mode, self.n_train_params, self.losses_weights)
+        loss = computeLosses(out, X, self.autoencoder, self.reg, self.reg_coef, self.mode, self.n_train_params, self.code_coef)
         return loss
 
     def __checkEarlyStop(self):
