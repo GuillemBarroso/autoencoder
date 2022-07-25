@@ -65,7 +65,7 @@ class Model(object):
                 ['losses weights', self.losses_weights],
                 ['num train params', self.n_train_params],
                 ['early stop patience', '{} epochs'.format(self.early_stop_patience)],
-                ['early stop tol', '{:.0e}'.format(self.early_stop_tol)],
+                ['early stop tol', '{:.0e} %'.format(self.early_stop_tol)],
                 ['initial learning rate', '{:.0e}'.format(self.learning_rate)],
                 ['epochs lr reduction', '{}'.format(self.lr_epoch_milestone)],
                 ['lr reduction factor', '{:.0e}'.format(self.lr_red_coef)],
@@ -162,7 +162,7 @@ class Model(object):
     def __checkEarlyStop(self):
         loss_current = self.loss_val[self.idx_early_stop][-1]
         
-        if self.loss_prev_best - loss_current < self.early_stop_tol:
+        if (self.loss_prev_best - loss_current)/self.loss_prev_best < self.early_stop_tol/100:
             self.early_stop_count += 1 
         else:
             self.early_stop_count = 0

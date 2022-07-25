@@ -32,16 +32,16 @@ if __name__ == "__main__":
     parser.add_argument('--split_size', '-split_size', default=0.1, type=float, help='test and validation splitting percentage (from 0 to 1) from total dataset')
     
     # Training parameters
-    parser.add_argument('--epochs', '-e', default=2000, type=int, help='number of training epochs')
+    parser.add_argument('--epochs', '-e', default=1000, type=int, help='number of training epochs')
     parser.add_argument('--batch_size', '-bs', default=600, type=int, help='batch size')
     parser.add_argument('--learning_rate', '-lr', default=1e-3, type=float, help='training learning rate')
-    parser.add_argument('--losses_weights', '-weights', default=[1e5, 1e5, 1e3], type=float, help='Losses weights. "standard" mode -> [w_img, _, _], "parametric" mode ->[w_img_nn, w_img_mu, w_code]')
+    parser.add_argument('--losses_weights', '-weights', default=[1e5, 1e5, 0], type=float, help='Losses weights. "standard" mode -> [w_img, _, _], "parametric" mode ->[w_img_nn, w_img_mu, w_code]')
     
-    parser.add_argument('--reg', '-reg', default=False, type=bool, help='if True, adds a regularisation term in the loss function')
+    parser.add_argument('--reg', '-reg', default=True, type=bool, help='if True, adds a regularisation term in the loss function')
     parser.add_argument('--reg_coef', '-reg_coef', default=1e2, type=float, help='coefficient that multiplies the regularisation term in the loss function. Only for reg = True.')
     
-    parser.add_argument('--early_stop_patience', '-es_pat', default=30, type=int, help='number of epochs that the early stopping criteria will wait before stopping training')
-    parser.add_argument('--early_stop_tol', '-es_tol', default=1e-7, type=float, help='tolerance that the early stopping will consider')
+    parser.add_argument('--early_stop_patience', '-es_pat', default=50, type=int, help='number of epochs that the early stopping criteria will wait before stopping training')
+    parser.add_argument('--early_stop_tol', '-es_tol', default=0.1, type=float, help='relative tolerance (%) for the early stopping criteria')
     
     parser.add_argument('--lr_epoch_milestone', '-lr_e', default=[1000], nargs='+', type=int, help='list of epochs in which learning rate will be decreased')
     parser.add_argument('--lr_red_coef','-lr_coef', default=7e-1, type=float, help='learning rate reduction factor')
