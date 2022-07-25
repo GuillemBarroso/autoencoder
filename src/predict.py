@@ -1,6 +1,6 @@
 import torch
-from src.calcs import computeLosses, codeInfo
-from src.postprocess import storeLossInfo, summaryInfo, plotting, plotShow, reshape, addLossesToList
+from src.losses import computeLosses
+from src.postprocess import storeLossInfo, summaryInfo, plotting, plotShow, reshape, addLossesToList, codeInfo
 import numpy as np
 
 class Predict(object):

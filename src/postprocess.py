@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import torch
 import pandas as pd
 import dataframe_image as dfi
-
+import numpy as np
 
 def reshape(x, size):
     return torch.reshape(x, size)
@@ -27,6 +27,15 @@ def plotZeroCode(code_size, plot_code, colour):
             if count in plot_code:
                 plt.scatter(x,y, color=colour,s=5)
             count += 1
+
+def codeInfo(code):
+            code = np.reshape(code, [code.shape[0], code.shape[1]* code.shape[2]])
+            avg = np.true_divide(code.sum(0), code.shape[0])
+            active_code_flag = np.nonzero(avg)
+            zero_code_flag = np.where(avg==0)[0]
+            code_size = len(active_code_flag)
+            avg_code_mag = np.true_divide(abs(avg).sum(),(avg!=0).sum())
+            return zero_code_flag, code_size, avg_code_mag
 
 def plotting(input, out, img_names, zero_code, data_class, mode):
     

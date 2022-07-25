@@ -2,7 +2,7 @@ import torch
 import math
 import timeit
 from src.postprocess import plotTraining, summaryInfo, addLossesToList, storeLossInfo, reshape
-from src.calcs import computeLosses
+from src.losses import computeLosses
 
 
 class Model(object):
