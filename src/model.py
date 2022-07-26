@@ -36,25 +36,26 @@ class Model(object):
         self.loss_prev_best = self.early_stop_tol*1e15
         self.n_train_params = 0
 
+        # Load arch information depending on the autoencoder's mode
         self.autoencoder = autoencoder
-        self.encoder = autoencoder[0]
-        self.decoder = autoencoder[1]           
-        self.idx_early_stop = self.encoder.idx_early_stop
-        self.loss_train = [[] for x in range(len(self.encoder.loss_names))]
-        self.loss_val = [[] for x in range(len(self.encoder.loss_names))]
-
-        self.optim_encoder = torch.optim.Adam(self.encoder.parameters(), lr=self.learning_rate, weight_decay=0)
-        self.optim_decoder = torch.optim.Adam(self.decoder.parameters(), lr=self.learning_rate, weight_decay=0)
-        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optim_encoder, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
-        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optim_decoder, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
-        if self.mode == 'combined':
-            self.parameter = autoencoder[2]
-            self.n_train_params += self.__count_parameters(self.parameter)
-            self.optim_param = torch.optim.Adam(self.parameter.parameters(), lr=self.learning_rate, weight_decay=0)
-            self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optim_param, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
-
-        self.n_train_params += self.__count_parameters(self.encoder)
+        self.decoder = autoencoder[1]      
+        self.optim_decoder, self.scheduler = self.__initialise_model(self.decoder)
         self.n_train_params += self.__count_parameters(self.decoder)
+
+        self.idx_early_stop = self.decoder.idx_early_stop
+        self.loss_train = [[] for x in range(len(self.decoder.loss_names))]
+        self.loss_val = [[] for x in range(len(self.decoder.loss_names))]
+
+        if self.mode == 'standard' or self.mode == 'combined':
+            self.encoder = autoencoder[0]
+            self.optim_encoder, self.scheduler = self.__initialise_model(self.encoder)
+            self.n_train_params += self.__count_parameters(self.encoder)
+
+        if self.mode == 'combined' or self.mode == 'parametric':
+            self.parameter = autoencoder[2]
+            self.optim_param, self.scheduler = self.__initialise_model(self.parameter)
+            self.n_train_params += self.__count_parameters(self.parameter)
+
         data.n_train_params = self.n_train_params # store in data to be used during predicitons
 
     def train(self):
@@ -77,11 +78,11 @@ class Model(object):
                 data.append(['code coef', self.code_coef])
 
             if self.act_hid == 'param_relu' or self.act_code == 'param_relu':
-                data.append(['relu optim alpha', self.encoder.param_relu.alpha.item()])
+                data.append(['relu optim alpha', self.decoder.param_relu.alpha.item()])
             if self.act_out == 'param_sigmoid':
-                data.append(['sigmoid optim alpha', self.encoder.param_sigmoid.alpha.item()])
-            data = addLossesToList(self.loss_train, 'train', self.encoder.loss_names, data)
-            data = addLossesToList(self.loss_val, 'val', self.encoder.loss_names, data)
+                data.append(['sigmoid optim alpha', self.decoder.param_sigmoid.alpha.item()])
+            data = addLossesToList(self.loss_train, 'train', self.decoder.loss_names, data)
+            data = addLossesToList(self.loss_val, 'val', self.decoder.loss_names, data)
             summaryInfo(data, name, self.verbose)
 
         start = timeit.default_timer()
@@ -106,15 +107,22 @@ class Model(object):
             mus = self.__getBatchData(self.mus_train, batch)
 
             loss = self.__evaluate(X, mus)
-
-            self.optim_encoder.zero_grad()
+            
+            # Set grads to zero
             self.optim_decoder.zero_grad()
-            if self.mode == 'combined':
+            if self.mode == 'standard' or self.mode == 'combined':
+                self.optim_encoder.zero_grad()
+            if self.mode == 'combined' or self.mode == 'parametric':
                 self.optim_param.zero_grad()
+
+            # Backward for the total loss (first entry in loss list)
             loss[0].backward()
-            self.optim_encoder.step()
+
+            # Update models' weights
             self.optim_decoder.step()
-            if self.mode == 'combined':
+            if self.mode == 'standard' or self.mode == 'combined':
+                self.optim_encoder.step()
+            if self.mode == 'combined' or self.mode == 'parametric':
                 self.optim_param.step()
             self.scheduler.step()
 
@@ -123,9 +131,9 @@ class Model(object):
 
         storeLossInfo(loss, self.loss_train)
 
-        if self.encoder.param_activation:
-            self.alphas[0].append(self.encoder.param_relu.alpha.item())
-            self.alphas[1].append(self.encoder.param_sigmoid.alpha.item())
+        if self.decoder.param_activation:
+            self.alphas[0].append(self.decoder.param_relu.alpha.item())
+            self.alphas[1].append(self.decoder.param_sigmoid.alpha.item())
 
     def __valEpoch(self):
         with torch.no_grad():
@@ -153,7 +161,10 @@ class Model(object):
             out = [out_nn, out_mu, code_nn, code_mu]
         elif self.mode == 'standard':
             code = self.encoder(X)
-            out = [self.decoder(code), code]
+            out = [self.decoder(code)]
+        elif self.mode == 'parametric':
+            code = self.parameter(mus)
+            out = [self.decoder(code)]
         else: 
             raise NotImplementedError
 
@@ -178,8 +189,13 @@ class Model(object):
         info = f"ValError:\n" if val else f""
 
         for i, loss in enumerate(losses):
-            info += "{}: {:.6}, ".format(self.encoder.loss_names[i], loss)
+            info += "{}: {:.6}, ".format(self.decoder.loss_names[i], loss)
         print(info[:-2])
 
     def __count_parameters(self, model): 
         return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+    def __initialise_model(self, model):
+        optim = torch.optim.Adam(model.parameters(), lr=self.learning_rate, weight_decay=0)
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(optim, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
+        return optim, scheduler

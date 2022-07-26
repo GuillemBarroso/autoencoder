@@ -72,7 +72,7 @@ def plotting(input, out, img_names, zero_code, data_class, mode):
             ax.axis('off')
         addPlotNames(plotNames)
         
-    elif mode == 'standard':
+    else:
         X_nn = out[0]
         code = out[1]
         plotNames = ['X', 'code', 'X_NN', 'fig data']
@@ -83,8 +83,6 @@ def plotting(input, out, img_names, zero_code, data_class, mode):
             plotImage(code[i], nRows, n_disp, i+1+n_disp)
             plotZeroCode(len(code.data[0]), zero_code[0], 'red')
             plotImage(X_nn[i], nRows, n_disp, i+1+2*n_disp)
-    else:
-        raise NotImplementedError
         
     savePlot('predictsPlot.png')
 
@@ -102,7 +100,7 @@ def plotTraining(epochs, hist):
 
     for loss in hist.loss_val:
         plt.plot(x_val, loss)
-    plt.legend([x + ' train' for x in hist.encoder.loss_names] + [x + ' val' for x in hist.encoder.loss_names], loc='upper right')
+    plt.legend([x + ' train' for x in hist.decoder.loss_names] + [x + ' val' for x in hist.decoder.loss_names], loc='upper right')
     plt.yscale('log')
     plt.xlabel('epoch')
     plt.ylabel('log(loss)')
@@ -116,7 +114,7 @@ def plotTraining(epochs, hist):
     # ax.set_ylim(limsPlot)
     savePlot('trainPlot.png')
 
-    if hist.encoder.param_activation:
+    if hist.decoder.param_activation:
         plt.figure()
         plt.plot(range(epochs), hist.alphas[0])
         plt.plot(range(epochs), hist.alphas[1])
