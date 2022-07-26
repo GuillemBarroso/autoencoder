@@ -6,9 +6,9 @@ import torch.nn.init as init
 from src.param_act_func import param_sigmoid, param_relu
 from src.postprocess import summaryInfo
 
-class Autoencoder(nn.Module):
+class Autoencoder():
     def __init__(self, data, args):
-        super(Autoencoder, self).__init__()
+        # super(Autoencoder, self).__init__()
         self.resolution = data.resolution
         self.resolution_mu = data.resolution_mu
         self.n_mus = data.n_mus
