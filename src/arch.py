@@ -40,6 +40,8 @@ class Autoencoder():
 
         if args.reg:
             self.loss_names.append('reg loss')
+        if args.bias_ord:
+            self.loss_names.append('bias loss')
 
         if 'param_relu' in [self.act_out, self.act_hid, self.act_code]:
             self.param_relu = param_relu(self.alpha_relu)
@@ -65,13 +67,33 @@ class Autoencoder():
             raise NotImplementedError
 
         self.models = [self.encoder, self.decoder, self.parameter]
+        self.n_train_params, self.n_biases  = self.__count_params()
 
         self.__summary()
+
+    def __count_params(self):
+        n_train_params = 0
+        n_biases = 0
+        for model in self.models:
+            if model:
+                for p in model.parameters():
+                    if p.requires_grad:
+                        if len(p.shape) == 2: # p are weights
+                            n_train_params += p.shape[0]*p.shape[1]
+                        elif len(p.shape) == 1: # p are biases
+                            n_train_params += p.shape[0]
+                            n_biases += p.shape[0]
+                        else:
+                            raise ValueError
+        return n_train_params, n_biases
+
 
     def __summary(self):
         name = 'results/archTable.png'
         data = [['autoencoder mode', self.mode],
-            ['encoder/decoder layers', self.layers]]
+            ['encoder/decoder layers', self.layers],
+            ['num train params', self.n_train_params],
+            ['num biases', self.n_biases]]
         if self.mode == 'combined' or self.mode == 'parametric':
             data.append(['parametric layers', self.layers_mu])
         

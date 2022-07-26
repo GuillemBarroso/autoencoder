@@ -1,6 +1,6 @@
 import torch
 
-def computeLosses(out, input, autoencoder, reg, reg_coef, mode, n_train_params, code_coef):
+def computeLosses(out, input, autoencoder, reg, reg_coef, mode, n_train_params, n_biases, code_coef, bias_ord, bias_coef):
     loss = []
     img_size = input.shape[1]*input.shape[2]
     X_nn = torch.reshape(out[0], input.shape)
@@ -23,18 +23,25 @@ def computeLosses(out, input, autoencoder, reg, reg_coef, mode, n_train_params, 
         #     loss_reg += sum(p.pow(2.0).sum()* reg_coef / n_train_params for p in model.parameters())
 
         # L1 regularization
-        loss_reg = 0
+        loss_reg = torch.tensor([0.0], requires_grad=True)
         for model in autoencoder:
             if model:
-                loss_reg += sum(p.abs().sum()* reg_coef * (img_size / n_train_params) for p in model.parameters())
+                loss_reg = loss_reg + sum(p.abs().sum() for p in model.parameters()) * reg_coef * (img_size / n_train_params)
         
         loss.append(loss_reg)
 
-    # # Bias ordering
-    # for model in autoencoder:
-    #     for name, param in model.named_parameters():
-    #         if 'bias' in name:
-    #             print(len(param))
+    # Bias ordering
+    if bias_ord:
+        loss_bias = torch.tensor([0.0], requires_grad=True)
+        for model in autoencoder:
+            if model:
+                for name, param in model.named_parameters():
+                    if 'bias' in name:
+                        for i in range(len(param)-1):
+                            loss_bias = loss_bias + torch.pow(torch.min(torch.FloatTensor([param[i+1]-param[i], 0])), 2) * bias_coef * (img_size / n_biases)
+        
+        loss.append(loss_bias)
+
     
     # Compute total loss to be optimised and place as the 0th entry of loss list
     loss_tot = sum(loss)

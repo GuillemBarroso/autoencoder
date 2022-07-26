@@ -20,6 +20,8 @@ class Model(object):
         self.batch_size = args.batch_size
         self.reg_coef = args.reg_coef
         self.reg = args.reg
+        self.bias_coef = args.bias_coef
+        self.bias_ord = args.bias_ord
         self.early_stop_patience = args.early_stop_patience
         self.early_stop_tol = args.early_stop_tol
         self.verbose = args.verbose
@@ -36,7 +38,8 @@ class Model(object):
         self.train_time = None
         self.early_stop_count = 0
         self.loss_prev_best = self.early_stop_tol*1e15
-        self.n_train_params = 0
+        self.n_train_params = autoencoder.n_train_params
+        self.n_biases = autoencoder.n_biases
 
         # Load arch information depending on the autoencoder's mode
         self.autoencoder = autoencoder
@@ -45,7 +48,6 @@ class Model(object):
         self.parameter = autoencoder.parameter
 
         self.optim_decoder, self.scheduler = self.__initialise_model(self.decoder)
-        self.n_train_params += self.__count_parameters(self.decoder)
 
         self.idx_early_stop = self.autoencoder.idx_early_stop
         self.loss_train = [[] for x in range(len(self.autoencoder.loss_names))]
@@ -53,13 +55,9 @@ class Model(object):
 
         if self.mode == 'standard' or self.mode == 'combined':
             self.optim_encoder, self.scheduler = self.__initialise_model(self.encoder)
-            self.n_train_params += self.__count_parameters(self.encoder)
 
         if self.mode == 'combined' or self.mode == 'parametric':
             self.optim_param, self.scheduler = self.__initialise_model(self.parameter)
-            self.n_train_params += self.__count_parameters(self.parameter)
-
-        data.n_train_params = self.n_train_params # store in data to be used during predicitons
 
         # Use DataLoaders for batch training
         self.x_loader = DataLoader(self.x_train, batch_size=self.batch_size, shuffle=False)
@@ -70,7 +68,6 @@ class Model(object):
             name = 'results/trainTable.png'
             data = [['epochs', self.epochs],
                 ['batch size', self.batch_size],
-                ['num train params', self.n_train_params],
                 ['early stop patience', '{} epochs'.format(self.early_stop_patience)],
                 ['early stop tol', '{:.0e} %'.format(self.early_stop_tol)],
                 ['initial learning rate', '{:.0e}'.format(self.learning_rate)],
@@ -83,6 +80,8 @@ class Model(object):
                 data.append(['regularisation coef', '{:.0e}'.format(self.reg_coef)])
             if self.mode == 'combined':
                 data.append(['code coef', self.code_coef])
+            if self.bias_ord:
+                data.append(['bias coef', self.bias_coef])
 
             if self.act_hid == 'param_relu' or self.act_code == 'param_relu':
                 data.append(['relu optim alpha', self.autoencoder.param_relu.alpha.item()])
@@ -178,7 +177,7 @@ class Model(object):
         else: 
             raise NotImplementedError
 
-        loss = computeLosses(out, X, self.autoencoder.models, self.reg, self.reg_coef, self.mode, self.n_train_params, self.code_coef)
+        loss = computeLosses(out, X, self.autoencoder.models, self.reg, self.reg_coef, self.mode, self.n_train_params, self.n_biases, self.code_coef, self.bias_ord, self.bias_coef)
         return loss
 
     def __checkEarlyStop(self):
@@ -199,7 +198,7 @@ class Model(object):
         info = f"ValError:\n" if val else f""
 
         for i, loss in enumerate(losses):
-            info += "{}: {:.6}, ".format(self.autoencoder.loss_names[i], loss)
+            info += "{}: {:.6}, ".format(self.autoencoder.loss_names[i], loss.item())
         print(info[:-2])
 
     def __count_parameters(self, model): 
