@@ -2,7 +2,7 @@ import argparse
 from src.load_data import Data
 from src.model import Model
 from src.predict import Predict
-from src.arch import Encoder, Decoder, Parameter
+from src.arch import Autoencoder, Test
 
 
 def main(args):
@@ -10,7 +10,7 @@ def main(args):
     data = Data(args)
 
     # Create autoencoder
-    autoencoder = [Encoder(data, args), Decoder(data, args), Parameter(data, args)]
+    autoencoder = Autoencoder(data, args)
 
     # Train and predict
     Model(autoencoder, data, args).train()
@@ -34,10 +34,10 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', '-bs', default=600, type=int, help='batch size')
     parser.add_argument('--learning_rate', '-lr', default=1e-3, type=float, help='training learning rate')
     parser.add_argument('--reg', '-reg', default=True, type=bool, help='if True, adds a regularisation term in the loss function')
-    parser.add_argument('--reg_coef', '-reg_coef', default=1e-5, type=float, help='coefficient that multiplies the regularisation term in the loss function. Only active for reg = True.')
+    parser.add_argument('--reg_coef', '-reg_coef', default=1e-4, type=float, help='coefficient that multiplies the regularisation term in the loss function. Only active for reg = True.')
     parser.add_argument('--code_coef', '-code_coef', default=1e-2, type=float, help='Coefficient of the code loss term. Only active for mode = "combined".')
     
-    parser.add_argument('--early_stop_patience', '-es_pat', default=150, type=int, help='number of epochs that the early stopping criteria will wait before stopping training')
+    parser.add_argument('--early_stop_patience', '-es_pat', default=500, type=int, help='number of epochs that the early stopping criteria will wait before stopping training')
     parser.add_argument('--early_stop_tol', '-es_tol', default=0.1, type=float, help='relative tolerance (%) for the early stopping criteria')
     
     parser.add_argument('--lr_epoch_milestone', '-lr_e', default=[1000], nargs='+', type=int, help='list of epochs in which learning rate will be decreased')

@@ -100,7 +100,7 @@ def plotTraining(epochs, hist):
 
     for loss in hist.loss_val:
         plt.plot(x_val, loss)
-    plt.legend([x + ' train' for x in hist.decoder.loss_names] + [x + ' val' for x in hist.decoder.loss_names], loc='upper right')
+    plt.legend([x + ' train' for x in hist.autoencoder.loss_names] + [x + ' val' for x in hist.autoencoder.loss_names], loc='upper right')
     plt.yscale('log')
     plt.xlabel('epoch')
     plt.ylabel('log(loss)')
@@ -114,7 +114,7 @@ def plotTraining(epochs, hist):
     # ax.set_ylim(limsPlot)
     savePlot('trainPlot.png')
 
-    if hist.decoder.param_activation:
+    if hist.autoencoder.param_activation:
         plt.figure()
         plt.plot(range(epochs), hist.alphas[0])
         plt.plot(range(epochs), hist.alphas[1])

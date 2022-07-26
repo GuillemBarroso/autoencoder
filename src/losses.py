@@ -25,9 +25,16 @@ def computeLosses(out, input, autoencoder, reg, reg_coef, mode, n_train_params, 
         # L1 regularization
         loss_reg = 0
         for model in autoencoder:
-            loss_reg += sum(p.abs().sum()* reg_coef * (img_size / n_train_params) for p in model.parameters())
+            if model:
+                loss_reg += sum(p.abs().sum()* reg_coef * (img_size / n_train_params) for p in model.parameters())
         
         loss.append(loss_reg)
+
+    # # Bias ordering
+    # for model in autoencoder:
+    #     for name, param in model.named_parameters():
+    #         if 'bias' in name:
+    #             print(len(param))
     
     # Compute total loss to be optimised and place as the 0th entry of loss list
     loss_tot = sum(loss)

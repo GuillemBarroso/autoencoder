@@ -1,4 +1,6 @@
+from enum import auto
 import torch
+from torch.utils.data import DataLoader
 import math
 import timeit
 from src.postprocess import plotTraining, summaryInfo, addLossesToList, storeLossInfo, reshape
@@ -38,25 +40,30 @@ class Model(object):
 
         # Load arch information depending on the autoencoder's mode
         self.autoencoder = autoencoder
-        self.decoder = autoencoder[1]      
+        self.encoder = autoencoder.encoder
+        self.decoder = autoencoder.decoder
+        self.parameter = autoencoder.parameter
+
         self.optim_decoder, self.scheduler = self.__initialise_model(self.decoder)
         self.n_train_params += self.__count_parameters(self.decoder)
 
-        self.idx_early_stop = self.decoder.idx_early_stop
-        self.loss_train = [[] for x in range(len(self.decoder.loss_names))]
-        self.loss_val = [[] for x in range(len(self.decoder.loss_names))]
+        self.idx_early_stop = self.autoencoder.idx_early_stop
+        self.loss_train = [[] for x in range(len(self.autoencoder.loss_names))]
+        self.loss_val = [[] for x in range(len(self.autoencoder.loss_names))]
 
         if self.mode == 'standard' or self.mode == 'combined':
-            self.encoder = autoencoder[0]
             self.optim_encoder, self.scheduler = self.__initialise_model(self.encoder)
             self.n_train_params += self.__count_parameters(self.encoder)
 
         if self.mode == 'combined' or self.mode == 'parametric':
-            self.parameter = autoencoder[2]
             self.optim_param, self.scheduler = self.__initialise_model(self.parameter)
             self.n_train_params += self.__count_parameters(self.parameter)
 
         data.n_train_params = self.n_train_params # store in data to be used during predicitons
+
+        # Use DataLoaders for batch training
+        self.x_loader = DataLoader(self.x_train, batch_size=self.batch_size, shuffle=False)
+        self.mus_loader = DataLoader(self.mus_train, batch_size=self.batch_size, shuffle=False)
 
     def train(self):
         def __summary():
@@ -78,11 +85,11 @@ class Model(object):
                 data.append(['code coef', self.code_coef])
 
             if self.act_hid == 'param_relu' or self.act_code == 'param_relu':
-                data.append(['relu optim alpha', self.decoder.param_relu.alpha.item()])
+                data.append(['relu optim alpha', self.autoencoder.param_relu.alpha.item()])
             if self.act_out == 'param_sigmoid':
-                data.append(['sigmoid optim alpha', self.decoder.param_sigmoid.alpha.item()])
-            data = addLossesToList(self.loss_train, 'train', self.decoder.loss_names, data)
-            data = addLossesToList(self.loss_val, 'val', self.decoder.loss_names, data)
+                data.append(['sigmoid optim alpha', self.autoencoder.param_sigmoid.alpha.item()])
+            data = addLossesToList(self.loss_train, 'train', self.autoencoder.loss_names, data)
+            data = addLossesToList(self.loss_val, 'val', self.autoencoder.loss_names, data)
             summaryInfo(data, name, self.verbose)
 
         start = timeit.default_timer()
@@ -101,10 +108,13 @@ class Model(object):
 
     def __trainEpoch(self):
         n_batches = self.__getNumBatches()
+        
+        # for batch in range(n_batches):
+        #     X = self.__getBatchData(self.x_train, batch)
+        #     mus = self.__getBatchData(self.mus_train, batch)
 
-        for batch in range(n_batches):
-            X = self.__getBatchData(self.x_train, batch)
-            mus = self.__getBatchData(self.mus_train, batch)
+        for X, mus in zip(self.x_loader, self.mus_loader):
+        
 
             loss = self.__evaluate(X, mus)
             
@@ -131,9 +141,9 @@ class Model(object):
 
         storeLossInfo(loss, self.loss_train)
 
-        if self.decoder.param_activation:
-            self.alphas[0].append(self.decoder.param_relu.alpha.item())
-            self.alphas[1].append(self.decoder.param_sigmoid.alpha.item())
+        if self.autoencoder.param_activation:
+            self.alphas[0].append(self.autoencoder.param_relu.alpha.item())
+            self.alphas[1].append(self.autoencoder.param_sigmoid.alpha.item())
 
     def __valEpoch(self):
         with torch.no_grad():
@@ -168,7 +178,7 @@ class Model(object):
         else: 
             raise NotImplementedError
 
-        loss = computeLosses(out, X, self.autoencoder, self.reg, self.reg_coef, self.mode, self.n_train_params, self.code_coef)
+        loss = computeLosses(out, X, self.autoencoder.models, self.reg, self.reg_coef, self.mode, self.n_train_params, self.code_coef)
         return loss
 
     def __checkEarlyStop(self):
@@ -189,7 +199,7 @@ class Model(object):
         info = f"ValError:\n" if val else f""
 
         for i, loss in enumerate(losses):
-            info += "{}: {:.6}, ".format(self.decoder.loss_names[i], loss)
+            info += "{}: {:.6}, ".format(self.autoencoder.loss_names[i], loss)
         print(info[:-2])
 
     def __count_parameters(self, model): 

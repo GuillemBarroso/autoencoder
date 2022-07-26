@@ -47,6 +47,24 @@ class Autoencoder(nn.Module):
         if 'param_sigmoid' in [self.act_out, self.act_hid, self.act_code]:
             self.param_sigmoid = param_sigmoid(self.alpha_sigmoid)
             self.param_activation = True
+        
+        # Build standard, combined or parametric
+        if self.mode == 'standard':
+            self.encoder = self.Encoder(self)
+            self.decoder = self.Decoder(self)
+            self.parameter = None
+        elif self.mode == 'combined':
+            self.encoder = self.Encoder(self)
+            self.decoder = self.Decoder(self)
+            self.parameter = self.Parameter(self)
+        elif self.mode == 'parametric':
+            self.encoder = None
+            self.decoder = self.Decoder(self)
+            self.parameter = self.Parameter(self)
+        else:
+            raise NotImplementedError
+
+        self.models = [self.encoder, self.decoder, self.parameter]
 
         self.__summary()
 
@@ -114,11 +132,109 @@ class Autoencoder(nn.Module):
         else: raise NotImplementedError
         return x
 
-class Encoder(Autoencoder):
-    def __init__(self, data, args):
-        super(Encoder, self).__init__(data, args)
+    class Encoder(nn.Module):
+        def __init__(self, autoencoder):
+            # super(Encoder, self).__init__(data, args)
+            self.autoencoder = autoencoder
+            self.build()
+            # summary(self, self.autoencoder.resolution)
+
+        def build(self):
+            # Encoder
+            self.encoder = nn.ModuleList()
+            self.activation_encoder = []
+            self.encoder.append(nn.Flatten())
+            self.activation_encoder.append('linear')
+            if self.autoencoder.dropout:
+                self.encoder.append(nn.Dropout(p=self.autoencoder.dropout_prob))
+                self.activation_encoder.append('linear')
+            # Encoder hidden layers
+            for k in range(self.autoencoder.steps-1):
+                self.encoder.append(nn.Linear(self.autoencoder.layers[k], self.autoencoder.layers[k+1]))
+                self.activation_encoder.append(self.autoencoder.act_hid)
+                if self.autoencoder.dropout:
+                    self.encoder.append(nn.Dropout(p=self.autoencoder.dropout_prob))
+                    self.activation_encoder.append('linear')
+            # Code
+            self.encoder.append(nn.Linear(self.autoencoder.layers[-2], self.autoencoder.layers[-1]))
+            self.activation_encoder.append(self.autoencoder.act_code)
+
+            # Weight initialisation  
+            self.autoencoder.weight_init(self.encoder)
+
+        def encode(self, x):
+            return self.autoencoder.layersLoop(x, self.encoder, self.activation_encoder)
+
+        def forward(self, x):
+            return self.encode(x)
+
+    class Decoder(nn.Module):
+        def __init__(self, autoencoder):
+            super().__init__()
+            self.autoencoder = autoencoder
+            self.build()
+            # summary(self, (1,torch.tensor(self.autoencoder.layers[-1])))
+
+        def build(self):
+            # Decoder
+            self.decoder = nn.ModuleList()
+            self.activation_decoder = []
+            self.decoder.append(nn.Flatten())
+            self.activation_decoder.append('linear')
+            for k in range(self.autoencoder.steps-1):
+                self.decoder.append(nn.Linear(self.autoencoder.layers[self.autoencoder.steps-k], self.autoencoder.layers[self.autoencoder.steps-k-1]))
+                self.activation_decoder.append(self.autoencoder.act_hid)
+                if self.autoencoder.dropout:
+                    self.decoder.append(nn.Dropout(p=self.autoencoder.dropout_prob))
+                    self.activation_decoder.append('linear')
+            # Add last decoder layer
+            self.decoder.append(nn.Linear(self.autoencoder.layers[1], self.autoencoder.layers[0]))
+            self.activation_decoder.append(self.autoencoder.act_out)
+
+            # Weight initialisation  
+            self.autoencoder.weight_init(self.decoder)
+
+        def decode(self, x):
+            return self.autoencoder.layersLoop(x, self.decoder, self.activation_decoder)
+
+        def forward(self, x):
+            return self.decode(x)
+
+
+    class Parameter(nn.Module):
+        def __init__(self, autoencoder):
+            super().__init__()
+            self.autoencoder = autoencoder
+            self.build()
+            # summary(self, self.autoencoder.resolution_mu)
+
+        def build(self):
+            # Parameter
+            steps_mu = len(self.autoencoder.layers_mu)-1
+            self.parameter = nn.ModuleList()
+            self.activation_param = []
+            for k in range(steps_mu-1):
+                self.parameter.append(nn.Linear(self.autoencoder.layers_mu[k], self.autoencoder.layers_mu[k+1]))
+                self.activation_param.append(self.autoencoder.act_hid)
+            self.parameter.append(nn.Linear(self.autoencoder.layers_mu[-2], self.autoencoder.layers_mu[-1]))
+            self.activation_param.append(self.autoencoder.act_code)
+
+            # Weight initialisation  
+            self.autoencoder.weight_init(self.parameter)
+
+        def param(self, x):
+            return self.autoencoder.layersLoop(x, self.parameter, self.activation_param)
+
+        def forward(self, x):
+            return self.param(x)
+
+
+class Test():
+    def __init__(self, autoencoder):
+        # super(Encoder, self).__init__(data, args)
+        self.autoencoder = autoencoder
         self.build()
-        summary(self, self.resolution)
+        # summary(self, self.autoencoder.resolution)
 
     def build(self):
         # Encoder
@@ -126,83 +242,25 @@ class Encoder(Autoencoder):
         self.activation_encoder = []
         self.encoder.append(nn.Flatten())
         self.activation_encoder.append('linear')
-        if self.dropout:
-            self.encoder.append(nn.Dropout(p=self.dropout_prob))
+        if self.autoencoder.dropout:
+            self.encoder.append(nn.Dropout(p=self.autoencoder.dropout_prob))
             self.activation_encoder.append('linear')
         # Encoder hidden layers
-        for k in range(self.steps-1):
-            self.encoder.append(nn.Linear(self.layers[k], self.layers[k+1]))
-            self.activation_encoder.append(self.act_hid)
-            if self.dropout:
-                self.encoder.append(nn.Dropout(p=self.dropout_prob))
+        for k in range(self.autoencoder.steps-1):
+            self.encoder.append(nn.Linear(self.autoencoder.layers[k], self.autoencoder.layers[k+1]))
+            self.activation_encoder.append(self.autoencoder.act_hid)
+            if self.autoencoder.dropout:
+                self.encoder.append(nn.Dropout(p=self.autoencoder.dropout_prob))
                 self.activation_encoder.append('linear')
         # Code
-        self.encoder.append(nn.Linear(self.layers[-2], self.layers[-1]))
-        self.activation_encoder.append(self.act_code)
+        self.encoder.append(nn.Linear(self.autoencoder.layers[-2], self.autoencoder.layers[-1]))
+        self.activation_encoder.append(self.autoencoder.act_code)
 
         # Weight initialisation  
-        self.weight_init(self.encoder)
+        self.autoencoder.weight_init(self.encoder)
 
     def encode(self, x):
-        return self.layersLoop(x, self.encoder, self.activation_encoder)
+        return self.autoencoder.layersLoop(x, self.encoder, self.activation_encoder)
 
     def forward(self, x):
         return self.encode(x)
-
-class Decoder(Autoencoder):
-    def __init__(self, data, args):
-        super(Decoder, self).__init__(data, args)
-        self.build()
-        summary(self, (1,torch.tensor(self.layers[-1])))
-
-    def build(self):
-        # Decoder
-        self.decoder = nn.ModuleList()
-        self.activation_decoder = []
-        self.decoder.append(nn.Flatten())
-        self.activation_decoder.append('linear')
-        for k in range(self.steps-1):
-            self.decoder.append(nn.Linear(self.layers[self.steps-k], self.layers[self.steps-k-1]))
-            self.activation_decoder.append(self.act_hid)
-            if self.dropout:
-                self.decoder.append(nn.Dropout(p=self.dropout_prob))
-                self.activation_decoder.append('linear')
-        # Add last decoder layer
-        self.decoder.append(nn.Linear(self.layers[1], self.layers[0]))
-        self.activation_decoder.append(self.act_out)
-
-        # Weight initialisation  
-        self.weight_init(self.decoder)
-
-    def decode(self, x):
-        return self.layersLoop(x, self.decoder, self.activation_decoder)
-
-    def forward(self, x):
-        return self.decode(x)
-
-
-class Parameter(Autoencoder):
-    def __init__(self, data, args):
-        super(Parameter, self).__init__(data, args)
-        self.build()
-        summary(self, self.resolution_mu)
-
-    def build(self):
-        # Parameter
-        steps_mu = len(self.layers_mu)-1
-        self.parameter = nn.ModuleList()
-        self.activation_param = []
-        for k in range(steps_mu-1):
-            self.parameter.append(nn.Linear(self.layers_mu[k], self.layers_mu[k+1]))
-            self.activation_param.append(self.act_hid)
-        self.parameter.append(nn.Linear(self.layers_mu[-2], self.layers_mu[-1]))
-        self.activation_param.append(self.act_code)
-
-        # Weight initialisation  
-        self.weight_init(self.parameter)
-
-    def param(self, x):
-        return self.layersLoop(x, self.parameter, self.activation_param)
-
-    def forward(self, x):
-        return self.param(x)
