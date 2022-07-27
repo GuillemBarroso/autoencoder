@@ -156,7 +156,7 @@ class Autoencoder():
 
     class Encoder(nn.Module):
         def __init__(self, autoencoder):
-            # super(Encoder, self).__init__(data, args)
+            super().__init__()
             self.autoencoder = autoencoder
             self.build()
             # summary(self, self.autoencoder.resolution)
