@@ -52,17 +52,17 @@ class Autoencoder():
         
         # Build standard, combined or parametric
         if self.mode == 'standard':
-            self.encoder = self.Encoder(self)
-            self.decoder = self.Decoder(self)
+            self.encoder = self.Encoder(self).to(torch.double)
+            self.decoder = self.Decoder(self).to(torch.double)
             self.parameter = None
         elif self.mode == 'combined':
-            self.encoder = self.Encoder(self)
-            self.decoder = self.Decoder(self)
-            self.parameter = self.Parameter(self)
+            self.encoder = self.Encoder(self).to(torch.double)
+            self.decoder = self.Decoder(self).to(torch.double)
+            self.parameter = self.Parameter(self).to(torch.double)
         elif self.mode == 'parametric':
             self.encoder = None
-            self.decoder = self.Decoder(self)
-            self.parameter = self.Parameter(self)
+            self.decoder = self.Decoder(self).to(torch.double)
+            self.parameter = self.Parameter(self).to(torch.double)
         else:
             raise NotImplementedError
 

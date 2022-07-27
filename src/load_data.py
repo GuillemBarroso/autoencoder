@@ -167,12 +167,12 @@ class Data(Dataset):
 
     def __storeDataForTraining(self, x_train, x_val, x_test):
         # Store training data in correct format
-        self.x_train = torch.from_numpy(x_train).float()
-        self.x_val = torch.from_numpy(x_val).float()
-        self.x_test = torch.from_numpy(x_test).float()
-        self.mus_train = torch.from_numpy(np.asarray(self.mus_train)).float()
-        self.mus_val = torch.from_numpy(np.asarray(self.mus_val)).float()
-        self.mus_test = torch.from_numpy(np.asarray(self.mus_test)).float()
+        self.x_train = torch.from_numpy(x_train).double()
+        self.x_val = torch.from_numpy(x_val).double()
+        self.x_test = torch.from_numpy(x_test).double()
+        self.mus_train = torch.from_numpy(np.asarray(self.mus_train)).double()
+        self.mus_val = torch.from_numpy(np.asarray(self.mus_val)).double()
+        self.mus_test = torch.from_numpy(np.asarray(self.mus_test)).double()
 
         # Store extra info
         self.resolution = self.x_train.shape[1:]
@@ -208,7 +208,7 @@ class Data(Dataset):
         return x_train, x_val, x_test
 
     def __normaliseArray(self, arr):
-        return (arr.astype('float32') - np.amin(arr)) / (np.amax(arr) - np.amin(arr) )
+        return (arr.astype('float64') - np.amin(arr)) / (np.amax(arr) - np.amin(arr) )
 
     def __getMus(self):
         self.mus_train = [self.data_class.getMusFromImgName(name) for name in self.img_names_train]
