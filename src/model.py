@@ -75,6 +75,7 @@ class Model(object):
                 ['lr reduction factor', '{:.0e}'.format(self.lr_red_coef)],
                 ['training time', '{:.2}s/{:.3}min'.format(self.train_time, self.train_time/60)],
                 ['regularisation', '{}'.format(self.reg)],
+                ['bias ordering', '{}'.format(self.bias_ord)],
             ]
             if self.reg:
                 data.append(['regularisation coef', '{:.0e}'.format(self.reg_coef)])
