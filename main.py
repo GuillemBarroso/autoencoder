@@ -1,8 +1,8 @@
 import argparse
 from src.load_data import Data
-from src.model import Model
+from src.train import Train
 from src.predict import Predict
-from src.arch import Autoencoder, Test
+from src.arch import Autoencoder
 
 
 def main(args):
@@ -13,31 +13,38 @@ def main(args):
     autoencoder = Autoencoder(data, args)
 
     # Train and predict
-    Model(autoencoder, data, args).train()
+    Train(autoencoder, data, args)
     Predict(autoencoder, data, args).evaluate()
-    
+
+    if args.bias_ord:
+        for name, param in autoencoder.decoder.named_parameters():
+            if 'bias' in name:
+                print(param)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Autoencoder for image compression')
 
     # General parameters
-    parser.add_argument('--dataset', '-d', default='ellipse2', type=str, help='name of the dataset')
+    parser.add_argument('--dataset', '-d', default='beam_homog', type=str, help='name of the dataset')
     parser.add_argument('--verbose', '-vrb', default=True, type=bool, help='display information on command window')
     parser.add_argument('--plot', '-plt', default=True, type=bool, help='plot training and predictions in figures and save pngs')
+    parser.add_argument('--save', '-s', default=True, type=bool, help="save autoencoder's model")
+    parser.add_argument('--save_name', '-s_name', default=True, type=str, help='name of the saved model. Only active if save = True')
 
     # Data parameters
     parser.add_argument('--random_test_data', '-rnd_data', default=True, type=bool, help="test data selected randomly (using 'split_size'). If False, it will be loaded from 'test_data.py'")
     parser.add_argument('--split_size', '-split_size', default=0.1, type=float, help='test and validation splitting percentage (from 0 to 1) from total dataset')
     
     # Training parameters
-    parser.add_argument('--epochs', '-e', default=1000, type=int, help='number of training epochs')
+    parser.add_argument('--epochs', '-e', default=10, type=int, help='number of training epochs')
     parser.add_argument('--batch_size', '-bs', default=600, type=int, help='batch size')
     parser.add_argument('--learning_rate', '-lr', default=1e-3, type=float, help='training learning rate')
     parser.add_argument('--reg', '-reg', default=True, type=bool, help='if True, adds a regularisation term in the loss function')
     parser.add_argument('--reg_coef', '-reg_coef', default=1e-4, type=float, help='coefficient that multiplies the regularisation term in the loss function. Only active for reg = True')
-    parser.add_argument('--code_coef', '-code_coef', default=1e-2, type=float, help='coefficient of the code loss term. Only active for mode = "combined"')
-    parser.add_argument('--bias_ord', '-bias_ord', default=True, type=bool, help='if True, adds bias oreding through regularisation term')
-    parser.add_argument('--bias_coef', '-bias_coef', default=1, type=float, help='coefficient of the bias loss term. Only active for bias_ord = True')
+    parser.add_argument('--code_coef', '-code_coef', default=1e-3, type=float, help='coefficient of the code loss term. Only active for mode = "combined"')
+    parser.add_argument('--bias_ord', '-bias_ord', default=False, type=bool, help='if True, adds bias oreding through regularisation term')
+    parser.add_argument('--bias_coef', '-bias_coef', default=1000, type=float, help='coefficient of the bias loss term. Only active for bias_ord = True')
     
     parser.add_argument('--early_stop_patience', '-es_pat', default=500, type=int, help='number of epochs that the early stopping criteria will wait before stopping training')
     parser.add_argument('--early_stop_tol', '-es_tol', default=0.1, type=float, help='relative tolerance (%) for the early stopping criteria')

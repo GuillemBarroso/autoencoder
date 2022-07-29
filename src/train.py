@@ -7,7 +7,7 @@ from src.postprocess import plotTraining, summaryInfo, addLossesToList, storeLos
 from src.losses import computeLosses
 
 
-class Model(object):
+class Train(object):
     def __init__(self, autoencoder, data, args):
         self.x_train = data.x_train
         self.x_val = data.x_val
@@ -32,6 +32,8 @@ class Model(object):
         self.mode = args.mode
         self.code_size = args.layers[-1]
         self.code_coef = args.code_coef
+        self.save = args.save
+        self.save_name = args.save_name
         self.alphas = [[], []]
         self.best_loss_val = None
         self.stop_training = None
@@ -47,21 +49,24 @@ class Model(object):
         self.decoder = autoencoder.decoder
         self.parameter = autoencoder.parameter
 
-        self.optim_decoder, self.scheduler = self.__initialise_model(self.decoder)
+        self.optim_decoder, self.scheduler = self.__initialiseModel(self.decoder)
 
         self.idx_early_stop = self.autoencoder.idx_early_stop
         self.loss_train = [[] for x in range(len(self.autoencoder.loss_names))]
         self.loss_val = [[] for x in range(len(self.autoencoder.loss_names))]
 
         if self.mode == 'standard' or self.mode == 'combined':
-            self.optim_encoder, self.scheduler = self.__initialise_model(self.encoder)
+            self.optim_encoder, self.scheduler = self.__initialiseModel(self.encoder)
 
         if self.mode == 'combined' or self.mode == 'parametric':
-            self.optim_param, self.scheduler = self.__initialise_model(self.parameter)
+            self.optim_param, self.scheduler = self.__initialiseModel(self.parameter)
 
         # Use DataLoaders for batch training
         self.x_loader = DataLoader(self.x_train, batch_size=self.batch_size, shuffle=False)
         self.mus_loader = DataLoader(self.mus_train, batch_size=self.batch_size, shuffle=False)
+
+        # Training
+        self.train()
 
     def train(self):
         def __summary():
@@ -107,7 +112,7 @@ class Model(object):
         __summary()
 
     def __trainEpoch(self):
-        n_batches = self.__getNumBatches()
+        # n_batches = self.__getNumBatches()
         
         # for batch in range(n_batches):
         #     X = self.__getBatchData(self.x_train, batch)
@@ -202,10 +207,7 @@ class Model(object):
             info += "{}: {:.6}, ".format(self.autoencoder.loss_names[i], loss.item())
         print(info[:-2])
 
-    def __count_parameters(self, model): 
-        return sum(p.numel() for p in model.parameters() if p.requires_grad)
-
-    def __initialise_model(self, model):
+    def __initialiseModel(self, model):
         optim = torch.optim.Adam(model.parameters(), lr=self.learning_rate, weight_decay=0)
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optim, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
         return optim, scheduler
