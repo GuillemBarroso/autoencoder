@@ -158,6 +158,7 @@ class Autoencoder():
         def __init__(self, autoencoder):
             super().__init__()
             self.autoencoder = autoencoder
+            self.name = 'encoder'
             self.build()
             # summary(self, self.autoencoder.resolution)
 
@@ -194,6 +195,7 @@ class Autoencoder():
         def __init__(self, autoencoder):
             super().__init__()
             self.autoencoder = autoencoder
+            self.name = 'decoder'
             self.build()
             # summary(self, (1,torch.tensor(self.autoencoder.layers[-1])))
 
@@ -227,6 +229,7 @@ class Autoencoder():
         def __init__(self, autoencoder):
             super().__init__()
             self.autoencoder = autoencoder
+            self.name = 'parameter'
             self.build()
             # summary(self, self.autoencoder.resolution_mu)
 

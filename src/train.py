@@ -33,7 +33,7 @@ class Train(object):
         self.code_size = args.layers[-1]
         self.code_coef = args.code_coef
         self.save = args.save
-        self.save_name = args.save_name
+        self.save_dir = args.save_dir
         self.alphas = [[], []]
         self.best_loss_val = None
         self.stop_training = None
@@ -67,6 +67,14 @@ class Train(object):
 
         # Training
         self.train()
+
+        # Save model
+        if self.save:
+            for model in self.autoencoder.models:
+                if model:
+                    params = f'_standard_reg{self.reg_coef}'
+                    save_path = f"{self.save_dir}/{model.name}{params}"
+                    torch.save(model.state_dict(), save_path)
 
     def train(self):
         def __summary():

@@ -30,14 +30,14 @@ if __name__ == "__main__":
     parser.add_argument('--verbose', '-vrb', default=True, type=bool, help='display information on command window')
     parser.add_argument('--plot', '-plt', default=True, type=bool, help='plot training and predictions in figures and save pngs')
     parser.add_argument('--save', '-s', default=True, type=bool, help="save autoencoder's model")
-    parser.add_argument('--save_name', '-s_name', default=True, type=str, help='name of the saved model. Only active if save = True')
+    parser.add_argument('--save_dir', '-s_dir', default='models', type=str, help='directory of the saved model. Only active if save = True')
 
     # Data parameters
     parser.add_argument('--random_test_data', '-rnd_data', default=True, type=bool, help="test data selected randomly (using 'split_size'). If False, it will be loaded from 'test_data.py'")
     parser.add_argument('--split_size', '-split_size', default=0.1, type=float, help='test and validation splitting percentage (from 0 to 1) from total dataset')
     
     # Training parameters
-    parser.add_argument('--epochs', '-e', default=10, type=int, help='number of training epochs')
+    parser.add_argument('--epochs', '-e', default=5000, type=int, help='number of training epochs')
     parser.add_argument('--batch_size', '-bs', default=600, type=int, help='batch size')
     parser.add_argument('--learning_rate', '-lr', default=1e-3, type=float, help='training learning rate')
     parser.add_argument('--reg', '-reg', default=True, type=bool, help='if True, adds a regularisation term in the loss function')

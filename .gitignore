@@ -4,9 +4,7 @@ __pycache__/
 Icon?
 /.vscode
 
+models/*
 results*
 data/*
 !data/beam_homog_test
-
-src/*_DEL.py
-test.py
