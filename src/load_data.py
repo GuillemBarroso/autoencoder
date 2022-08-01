@@ -36,6 +36,7 @@ class Data(Dataset):
 
         self.dataset = args.dataset
         self.random_test_data = args.random_test_data
+        self.random_seed = args.random_seed
         self.split_size = args.split_size
         self.verbose = args.verbose
 
@@ -140,8 +141,10 @@ class Data(Dataset):
 
     def __splitDataRandom(self, data):
         val_size = self.split_size/(1-self.split_size)
-        x_train, x_test, self.img_names_train, self.img_names_test = train_test_split(data, self.img_names, test_size=self.split_size, shuffle=True)
-        x_train, x_val, self.img_names_train, self.img_names_val = train_test_split(x_train, self.img_names_train, test_size=val_size, shuffle=True)
+        x_train, x_test, self.img_names_train, self.img_names_test = train_test_split(
+            data, self.img_names, test_size=self.split_size, shuffle=True, random_state=self.random_seed)
+        x_train, x_val, self.img_names_train, self.img_names_val = train_test_split(
+            x_train, self.img_names_train, test_size=val_size, shuffle=True, random_state=self.random_seed)
         return x_train, x_val, x_test
 
     def __splitDataManual(self, data):

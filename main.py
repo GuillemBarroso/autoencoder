@@ -3,11 +3,12 @@ from src.load_data import Data
 from src.train import Train
 from src.predict import Predict
 from src.arch import Autoencoder
-
+import matplotlib.pyplot as plt
 
 def main(args):
     # Load data
     data = Data(args)
+    plt.show()
 
     # Create autoencoder
     autoencoder = Autoencoder(data, args)
@@ -34,6 +35,7 @@ if __name__ == "__main__":
 
     # Data parameters
     parser.add_argument('--random_test_data', '-rnd_data', default=True, type=bool, help="test data selected randomly (using 'split_size'). If False, it will be loaded from 'test_data.py'")
+    parser.add_argument('--random_seed', '-rnd_seed', default=2, type=int, help="random seed for reproducible results. Only active if random_test_data = True")
     parser.add_argument('--split_size', '-split_size', default=0.1, type=float, help='test and validation splitting percentage (from 0 to 1) from total dataset')
     
     # Training parameters
