@@ -40,6 +40,8 @@ class Predict(object):
         self.code_dim = (self.n_test, int(np.sqrt(self.code_size)), int(np.sqrt(self.code_size)))
         self.img_dim = (self.n_test, self.resolution[0], self.resolution[1])
 
+        self.evaluate()
+
     def evaluate(self):
         def __summary():
             name = 'results/evaluationTable.png'

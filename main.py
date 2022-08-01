@@ -14,7 +14,7 @@ def main(args):
 
     # Train and predict
     Train(autoencoder, data, args)
-    Predict(autoencoder, data, args).evaluate()
+    Predict(autoencoder, data, args)
 
     if args.bias_ord:
         for name, param in autoencoder.decoder.named_parameters():
@@ -37,14 +37,14 @@ if __name__ == "__main__":
     parser.add_argument('--split_size', '-split_size', default=0.1, type=float, help='test and validation splitting percentage (from 0 to 1) from total dataset')
     
     # Training parameters
-    parser.add_argument('--epochs', '-e', default=5000, type=int, help='number of training epochs')
+    parser.add_argument('--epochs', '-e', default=2, type=int, help='number of training epochs')
     parser.add_argument('--batch_size', '-bs', default=600, type=int, help='batch size')
     parser.add_argument('--learning_rate', '-lr', default=1e-3, type=float, help='training learning rate')
     parser.add_argument('--reg', '-reg', default=True, type=bool, help='if True, adds a regularisation term in the loss function')
     parser.add_argument('--reg_coef', '-reg_coef', default=1e-4, type=float, help='coefficient that multiplies the regularisation term in the loss function. Only active for reg = True')
     parser.add_argument('--code_coef', '-code_coef', default=1e-3, type=float, help='coefficient of the code loss term. Only active for mode = "combined"')
     parser.add_argument('--bias_ord', '-bias_ord', default=False, type=bool, help='if True, adds bias oreding through regularisation term')
-    parser.add_argument('--bias_coef', '-bias_coef', default=1000, type=float, help='coefficient of the bias loss term. Only active for bias_ord = True')
+    parser.add_argument('--bias_coef', '-bias_coef', default=1, type=float, help='coefficient of the bias loss term. Only active for bias_ord = True')
     
     parser.add_argument('--early_stop_patience', '-es_pat', default=500, type=int, help='number of epochs that the early stopping criteria will wait before stopping training')
     parser.add_argument('--early_stop_tol', '-es_tol', default=0.1, type=float, help='relative tolerance (%) for the early stopping criteria')
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     parser.add_argument('--lr_red_coef','-lr_coef', default=7e-1, type=float, help='learning rate reduction factor')
 
     # Architecture parameters
-    parser.add_argument('--mode','-m', default='parametric', type=str, help="autoencoder mode; 'standard', 'combined' and 'parametric' options implemented")
+    parser.add_argument('--mode','-m', default='standard', type=str, help="autoencoder mode; 'standard', 'combined' and 'parametric' options implemented")
     parser.add_argument('--layers','-l', default=[200, 100, 25], nargs='+', type=int, help="autoencoder's neurons per layer (including code)")
     parser.add_argument('--layers_mu','-l_mu', default=[50, 25], nargs='+', type=int, help="parameter NN's neurons per layer (including code). Only active for mode = 'combined' and mode = 'parametric'" )
     parser.add_argument('--initialisation','-init', default='kaiming_uniform', type=str, help='weight initialisation method')
