@@ -1,9 +1,7 @@
-from enum import auto
 import torch
 from torch.utils.data import DataLoader
-import math
 import timeit
-from src.postprocess import plotTraining, summaryInfo, addLossesToList, storeLossInfo, reshape
+from src.postprocess import plotTraining, summaryInfo, addLossesToList, storeLossInfo, reshape, getModelName
 from src.losses import computeLosses
 
 
@@ -13,6 +11,10 @@ class Train(object):
         self.x_val = data.x_val
         self.mus_train = data.mus_train
         self.mus_val = data.mus_val
+        self.dataset = args.dataset
+        self.random_seed = args.random_seed
+        self.layers = args.layers
+        self.layers_mu = args.layers_mu
         self.learning_rate = args.learning_rate
         self.lr_epoch_milestone = args.lr_epoch_milestone
         self.lr_red_coef = args.lr_red_coef
@@ -64,17 +66,33 @@ class Train(object):
         # Use DataLoaders for batch training
         self.x_loader = DataLoader(self.x_train, batch_size=self.batch_size, shuffle=False)
         self.mus_loader = DataLoader(self.mus_train, batch_size=self.batch_size, shuffle=False)
-
+        
         # Training
-        self.train()
+        name = getModelName(self.mode, self.dataset, self.random_seed, self.epochs, self.reg,
+            self.reg_coef, self.code_coef, self.layers, self.layers_mu)
+        try:
+            if self.mode == 'standard':
+                autoencoder.encoder.load_state_dict(torch.load(f"{self.save_dir}/encoder_{name}"))
+                autoencoder.decoder.load_state_dict(torch.load(f"{self.save_dir}/decoder_{name}"))
+            elif self.mode == 'combined':
+                autoencoder.encoder.load_state_dict(torch.load(f"{self.save_dir}/encoder_{name}"))
+                autoencoder.decoder.load_state_dict(torch.load(f"{self.save_dir}/decoder_{name}"))
+                autoencoder.parameter.load_state_dict(torch.load(f"{self.save_dir}/parameter_{name}"))
+            elif self.mode == 'parametric':
+                autoencoder.decoder.load_state_dict(torch.load(f"{self.save_dir}/decoder_{name}"))
+                autoencoder.parameter.load_state_dict(torch.load(f"{self.save_dir}/parameter_{name}"))
+            print("Existing model loaded. Training skipped.")
 
-        # Save model
-        if self.save:
-            for model in self.autoencoder.models:
-                if model:
-                    params = f'_standard_reg{self.reg_coef}'
-                    save_path = f"{self.save_dir}/{model.name}{params}"
-                    torch.save(model.state_dict(), save_path)
+        except FileNotFoundError:
+            print('Model not found. Starting training.')
+            self.train()
+
+            # Save model
+            if self.save:
+                for model in self.autoencoder.models:
+                    if model:
+                        save_path = f"{self.save_dir}/{model.name}_{name}"
+                        torch.save(model.state_dict(), save_path)
 
     def train(self):
         def __summary():
@@ -165,15 +183,6 @@ class Train(object):
 
         if self.verbose:
                 self.__printTrainInfo(loss, val=True)
-
-    def __getNumBatches(self):
-        return math.ceil(len(self.x_train)/self.batch_size)
-    
-    def __getBatchData(self, x, batch):
-        ini = batch*self.batch_size
-        end = ini+self.batch_size
-        if end > len(x): end = len(x)
-        return x[ini:end]
 
     def __evaluate(self, X, mus):
         if self.mode == 'combined':

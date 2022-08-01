@@ -3,12 +3,10 @@ from src.load_data import Data
 from src.train import Train
 from src.predict import Predict
 from src.arch import Autoencoder
-import matplotlib.pyplot as plt
 
 def main(args):
     # Load data
     data = Data(args)
-    plt.show()
 
     # Create autoencoder
     autoencoder = Autoencoder(data, args)
@@ -16,11 +14,6 @@ def main(args):
     # Train and predict
     Train(autoencoder, data, args)
     Predict(autoencoder, data, args)
-
-    if args.bias_ord:
-        for name, param in autoencoder.decoder.named_parameters():
-            if 'bias' in name:
-                print(param)
 
 
 if __name__ == "__main__":
@@ -35,7 +28,7 @@ if __name__ == "__main__":
 
     # Data parameters
     parser.add_argument('--random_test_data', '-rnd_data', default=True, type=bool, help="test data selected randomly (using 'split_size'). If False, it will be loaded from 'test_data.py'")
-    parser.add_argument('--random_seed', '-rnd_seed', default=2, type=int, help="random seed for reproducible results. Only active if random_test_data = True")
+    parser.add_argument('--random_seed', '-rnd_seed', default=1, type=int, help="random seed for reproducible results. Only active if random_test_data = True")
     parser.add_argument('--split_size', '-split_size', default=0.1, type=float, help='test and validation splitting percentage (from 0 to 1) from total dataset')
     
     # Training parameters
@@ -55,7 +48,7 @@ if __name__ == "__main__":
     parser.add_argument('--lr_red_coef','-lr_coef', default=7e-1, type=float, help='learning rate reduction factor')
 
     # Architecture parameters
-    parser.add_argument('--mode','-m', default='standard', type=str, help="autoencoder mode; 'standard', 'combined' and 'parametric' options implemented")
+    parser.add_argument('--mode','-m', default='parametric', type=str, help="autoencoder mode; 'standard', 'combined' and 'parametric' options implemented")
     parser.add_argument('--layers','-l', default=[200, 100, 25], nargs='+', type=int, help="autoencoder's neurons per layer (including code)")
     parser.add_argument('--layers_mu','-l_mu', default=[50, 25], nargs='+', type=int, help="parameter NN's neurons per layer (including code). Only active for mode = 'combined' and mode = 'parametric'" )
     parser.add_argument('--initialisation','-init', default='kaiming_uniform', type=str, help='weight initialisation method')

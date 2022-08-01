@@ -138,3 +138,27 @@ def addLossesToList(losses, mode, loss_names, data=[]):
 def storeLossInfo(losses, lossStore):
         for i, loss in enumerate(losses):
             lossStore[i].append(loss.item())
+
+def getModelName(mode, dataset, random_seed, epochs, reg, reg_coef, code_coef, layers, layers_mu):
+    name = f"{mode}_{dataset}_seed{random_seed}_epochs{epochs}"
+    if reg:
+        name += f"_regCoef{reg_coef}"
+    if mode == 'standard':
+        name += f"_archED"
+        for x in layers:
+            name += f"_{x}"
+    elif mode == 'combined':
+        name += f"codeCoef{code_coef}_archED"
+        for x in layers:
+            name += f"_{x}"
+        name += f"_archP"
+        for x in layers_mu:
+            name += f"_{x}"
+    elif mode == 'parametric':
+        name += f"_archP"
+        for x in layers_mu:
+            name += f"_{x}"
+        name += f"_archD"
+        for x in layers[::-1]:
+            name += f"_{x}"
+    return name
