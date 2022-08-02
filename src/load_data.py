@@ -39,6 +39,7 @@ class Data(Dataset):
         self.random_seed = args.random_seed
         self.split_size = args.split_size
         self.verbose = args.verbose
+        self.plot = args.plot
 
         data = self.__getData()
 
@@ -52,7 +53,8 @@ class Data(Dataset):
         self.__getMus()
         self.__storeDataForTraining(x_train, x_val, x_test)
         self.__getTestImageParams()
-        self.data_class.plotDataset(self.mus_test_ext)
+        if self.plot:
+            self.data_class.plotDataset(self.mus_test_ext)
         self.__summary()
 
     def __len__(self):
