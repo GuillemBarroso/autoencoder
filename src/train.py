@@ -119,6 +119,7 @@ class Train(object):
                 data.append(['relu optim alpha', self.autoencoder.param_relu.alpha.item()])
             if self.act_out == 'param_sigmoid':
                 data.append(['sigmoid optim alpha', self.autoencoder.param_sigmoid.alpha.item()])
+
             data = addLossesToList(self.loss_train, 'train', self.autoencoder.loss_names, data)
             data = addLossesToList(self.loss_val, 'val', self.autoencoder.loss_names, data)
             summaryInfo(data, name, self.verbose)
@@ -138,14 +139,7 @@ class Train(object):
         __summary()
 
     def __trainEpoch(self):
-        # n_batches = self.__getNumBatches()
-        
-        # for batch in range(n_batches):
-        #     X = self.__getBatchData(self.x_train, batch)
-        #     mus = self.__getBatchData(self.mus_train, batch)
-
         for X, mus in zip(self.x_loader, self.mus_loader):
-        
 
             loss = self.__evaluate(X, mus)
             
@@ -225,6 +219,7 @@ class Train(object):
         print(info[:-2])
 
     def __initialiseModel(self, model):
-        optim = torch.optim.Adam(model.parameters(), lr=self.learning_rate, weight_decay=0)
+        # optim = torch.optim.Adam(model.parameters(), lr=self.learning_rate, weight_decay=0)
+        optim = torch.optim.Adam(model.parameters())
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optim, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
         return optim, scheduler
