@@ -3,6 +3,7 @@ from src.losses import computeLosses
 from src.postprocess import storeLossInfo, summaryInfo, plotting, plotShow, reshape, addLossesToList, codeInfo
 import numpy as np
 
+
 class Predict(object):
     def __init__(self, autoencoder, data, args):
         self.x_test = data.x_test
@@ -37,6 +38,7 @@ class Predict(object):
         self.zero_code_flag_mu = None
         self.active_code_size_mu = None
         self.avg_code_mag_mu = None
+        self.nn_out = None
         self.code_dim = (self.n_test, int(np.sqrt(self.code_size)), int(np.sqrt(self.code_size)))
         self.img_dim = (self.n_test, self.resolution[0], self.resolution[1])
 
@@ -90,7 +92,11 @@ class Predict(object):
             else:
                 raise NotImplementedError
 
-            loss = computeLosses(out, self.x_test.data, self.autoencoder.models, self.reg, self.reg_coef, self.mode, self.n_train_params, self.n_biases, self.code_coef, self.bias_ord, self.bias_coef)
+            # Store NN's outputs
+            self.nn_out = out
+
+            loss = computeLosses(self.nn_out, self.x_test.data, self.autoencoder.models, self.reg, self.reg_coef,
+                self.mode, self.n_train_params, self.n_biases, self.code_coef, self.bias_ord, self.bias_coef)
 
         storeLossInfo(loss, self.loss_test)
 
