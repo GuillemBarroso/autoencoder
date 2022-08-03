@@ -12,7 +12,7 @@ class Input():
         self.verbose = False
         self.plot = False
         self.save = False
-        self.save_dir = 'models'
+        self.save_dir = 'models/cross_validation'
 
         # Data parameters
         self.random_test_data = True
@@ -94,7 +94,6 @@ if __name__ == "__main__":
         loss[seed].append(abs(loss[seed][0][0]-loss[seed][1][0])/loss[seed][0][0])
         loss[seed].append(abs(loss[seed][0][0]-loss[seed][2][0])/loss[seed][0][0])
 
-
     df = pd.DataFrame(loss, columns=['Standard', 'Combined', 'Parametric', 'Rel Error comb', 'Rel error param'])
     print(df)
-    dfi.export(df, 'test.png')
+    dfi.export(df, 'models/cross_validation/losses.png')
