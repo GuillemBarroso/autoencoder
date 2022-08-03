@@ -4,6 +4,7 @@ import pandas as pd
 import dataframe_image as dfi
 import numpy as np
 
+
 def reshape(x, size):
     return torch.reshape(x, size)
 
@@ -139,8 +140,16 @@ def storeLossInfo(losses, lossStore):
         for i, loss in enumerate(losses):
             lossStore[i].append(loss.item())
 
-def getModelName(mode, dataset, random_seed, epochs, reg, reg_coef, code_coef, layers, layers_mu):
-    name = f"{mode}_{dataset}_seed{random_seed}_epochs{epochs}"
+def getModelName(mode, dataset, random_test_data, random_seed, manual_data, epochs,
+                 reg, reg_coef, code_coef, layers, layers_mu):
+
+    name = f"{mode}_{dataset}"
+    if random_test_data:
+        name += f"_seed{random_seed}"
+    else:
+        name += f"_manualData{manual_data}"
+    name += f"_epochs{epochs}"
+
     if reg:
         name += f"_regCoef{reg_coef}"
     if mode == 'standard':

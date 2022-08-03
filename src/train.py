@@ -12,7 +12,9 @@ class Train(object):
         self.mus_train = data.mus_train
         self.mus_val = data.mus_val
         self.dataset = args.dataset
+        self.random_test_data = args.random_test_data
         self.random_seed = args.random_seed
+        self.manual_data = args.manual_data
         self.layers = args.layers
         self.layers_mu = args.layers_mu
         self.learning_rate = args.learning_rate
@@ -68,8 +70,8 @@ class Train(object):
         self.mus_loader = DataLoader(self.mus_train, batch_size=self.batch_size, shuffle=False)
         
         # Training
-        name = getModelName(self.mode, self.dataset, self.random_seed, self.epochs, self.reg,
-            self.reg_coef, self.code_coef, self.layers, self.layers_mu)
+        name = getModelName(self.mode, self.dataset, self.random_test_data, self.random_seed, self.manual_data,
+            self.epochs, self.reg, self.reg_coef, self.code_coef, self.layers, self.layers_mu)
         try:
             if self.mode == 'standard':
                 autoencoder.encoder.load_state_dict(torch.load(f"{self.save_dir}/encoder_{name}"))
