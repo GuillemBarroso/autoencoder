@@ -20,14 +20,13 @@ class Data(Dataset):
         self.n_mus = None
         self.scale = None
         self.img_names = None
-        self.img_names_test = []
-        self.img_names_train = []
-        self.img_names_val = []
+        self.img_names_test = None
+        self.img_names_train = None
+        self.img_names_val = None
         self.mus_test = None
         self.mus_train = None
         self.mus_val = None
         self.mus_test_ext = None
-        self.mus_plot = None
         self.n_train = None
         self.n_val = None
         self.n_test = None
@@ -36,6 +35,7 @@ class Data(Dataset):
 
         self.dataset = args.dataset
         self.random_test_data = args.random_test_data
+        self.manual_data = args.manual_data
         self.random_seed = args.random_seed
         self.split_size = args.split_size
         self.verbose = args.verbose
@@ -150,8 +150,7 @@ class Data(Dataset):
         return x_train, x_val, x_test
 
     def __splitDataManual(self, data):
-        # TODO: also add self.img_names_train, test and val for manual test data selection!
-        self.mus_test, self.mus_plot = getTestData()
+        self.mus_test = getTestData(self.manual_data)
         self.img_names_test, _, _ = self.data_class.getImageNamesFromMus(self.mus_test)
 
         x_test = []

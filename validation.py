@@ -18,6 +18,7 @@ class Input():
         self.random_test_data = True
         self.random_seed = 1
         self.split_size = 0.1
+        self.manual_data = 0
         
         # Training parameters
         self.epochs = 2000
@@ -81,6 +82,8 @@ if __name__ == "__main__":
             args.mode = mode
             args.random_seed = seed
             loss_model = validation(data, args)
+
+            # Store
             if mode == 'standard':
                 loss_std[seed-1] = loss_model[idx_loss[iMode]]
             elif mode == 'combined':
