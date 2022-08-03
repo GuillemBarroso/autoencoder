@@ -307,12 +307,12 @@ class BeamHomog():
             pos = float(name[underscores[1]+2:-4])
             return Fh, Fv, loc, pos
 
-    def getImageNamesFromMus(self, mu1_test, mu2_test):
+    def getImageNamesFromMus(self, mus_test):
             mu1_ext = []
             mu2_ext = []
             testData = []
-            for mu1 in mu1_test:
-                for mu2 in mu2_test:
+            for mu1 in mus_test[0]:
+                for mu2 in mus_test[1]:
                     mu1_ext.append(mu1)
                     mu2_ext.append(mu2)
                     Fh, Fv, loc, pos = self.getParamsFromMus(mu1,mu2)

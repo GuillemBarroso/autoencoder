@@ -152,22 +152,24 @@ class Data(Dataset):
     def __splitDataManual(self, data):
         # TODO: also add self.img_names_train, test and val for manual test data selection!
         self.mus_test, self.mus_plot = getTestData()
-        self.test_names, _, _ = self.data_class.getImageNamesFromMus(self.mus_test[0], self.mus_test[1])
+        self.img_names_test, _, _ = self.data_class.getImageNamesFromMus(self.mus_test)
 
         x_test = []
         x_no_test = []
+        img_names_no_test = []
         for i, name in enumerate(self.img_names):
-            if name in self.test_names:
+            if name in self.img_names_test:
                 x_test.append(data[i])
-                self.img_test_names.append(name)
             else:
                 x_no_test.append(data[i])
+                img_names_no_test.append(name)
 
-        if len(x_test) != len(self.test_names):
+        if len(x_test) != len(self.img_names_test):
                 raise ValueError('WARNING: number of test images requested is {}. Found {} with the same name in dataset.'.format(
                     len(self.testData), len(x_test)))
 
-        x_train, x_val, = train_test_split(np.asarray(x_no_test), test_size=0.1, shuffle=True)
+        x_train, x_val, self.img_names_train, self.img_names_val = train_test_split(
+            np.asarray(x_no_test), img_names_no_test, test_size=0.1, shuffle=True)
         return x_train, x_val, np.asarray(x_test)
 
     def __storeDataForTraining(self, x_train, x_val, x_test):
