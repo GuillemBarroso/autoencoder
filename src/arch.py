@@ -4,7 +4,7 @@ from torch import nn
 import torch.nn.functional as F
 import torch.nn.init as init
 from src.param_act_func import param_sigmoid, param_relu
-from src.postprocess import summaryInfo
+from src.postprocess import summaryInfo, getModelName
 
 class Autoencoder():
     def __init__(self, data, args):
@@ -68,7 +68,8 @@ class Autoencoder():
 
         self.models = [self.encoder, self.decoder, self.parameter]
         self.n_train_params, self.n_biases  = self.__count_params()
-
+        self.name = getModelName(self.mode, args.dataset, args.random_test_data, args.random_seed,args.manual_data,
+            args.epochs, args.reg, args.reg_coef, args.code_coef, self.layers, self.layers_mu)
         self.__summary()
 
     def __count_params(self):
@@ -89,7 +90,7 @@ class Autoencoder():
 
 
     def __summary(self):
-        name = 'results/archTable.png'
+        name = f'results/archTable_{self.name}.png'
         data = [['autoencoder mode', self.mode],
             ['encoder/decoder layers', self.layers],
             ['num train params', self.n_train_params],

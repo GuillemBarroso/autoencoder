@@ -30,6 +30,7 @@ class Predict(object):
         self.encoder = autoencoder.encoder
         self.decoder = autoencoder.decoder
         self.parameter = autoencoder.parameter
+        self.name = autoencoder.name
 
         self.loss_test = [[] for x in range(len(self.autoencoder.loss_names))]
         self.zero_code_flag = None
@@ -46,7 +47,7 @@ class Predict(object):
 
     def evaluate(self):
         def __summary():
-            name = 'results/evaluationTable.png'
+            name = f"results/evaluationTable_{self.name}.png"
             data = [
             ['code nn size/max size', '{}/{}'.format(self.active_code_size, self.code_size)],
             ['avg pixel magnitude nn', '{:.2}'.format(self.avg_code_mag)],
@@ -114,7 +115,7 @@ class Predict(object):
         
         __summary()
         if self.plot:
-            plotting(x_test, out, img_test, zero_code, self.data_class, self.mode)
+            plotting(x_test, out, img_test, zero_code, self.data_class, self.mode, self.name)
             plotShow()
 
         

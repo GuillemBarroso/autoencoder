@@ -38,7 +38,7 @@ def codeInfo(code):
             avg_code_mag = np.true_divide(abs(avg).sum(),(avg!=0).sum())
             return zero_code_flag, code_size, avg_code_mag
 
-def plotting(input, out, img_names, zero_code, data_class, mode):
+def plotting(input, out, img_names, zero_code, data_class, mode, name):
     
     n_disp = len(input)
 
@@ -85,7 +85,7 @@ def plotting(input, out, img_names, zero_code, data_class, mode):
             plotZeroCode(len(code.data[0]), zero_code[0], 'red')
             plotImage(X_nn[i], nRows, n_disp, i+1+2*n_disp)
         
-    savePlot('predictsPlot.png')
+    savePlot(f'predictsPlot_{name}.png')
 
 def addPlotNames(plotNames):
     for i, plotName in enumerate(reversed(plotNames)):
@@ -113,7 +113,7 @@ def plotTraining(epochs, hist):
     # else:
     #     limsPlot = lims
     # ax.set_ylim(limsPlot)
-    savePlot('trainPlot.png')
+    savePlot(f'trainPlot_{hist.autoencoder.name}.png')
 
     if hist.autoencoder.param_activation:
         plt.figure()
@@ -123,7 +123,7 @@ def plotTraining(epochs, hist):
         plt.ylabel('alpha')
         plt.xlabel('epoch')
         plt.legend(['alpha ReLu', 'alpha Sigmoid'], loc='upper right')
-        savePlot('alphasPlot.png')
+        savePlot(f'alphasPlot_{hist.autoencoder.name}.png')
 
 def savePlot(name):
     plt.savefig('results/{}'.format(name))
