@@ -20,7 +20,7 @@ class Data(Dataset):
         self.n_mus = None
         self.scale = None
         self.img_names = None
-        self.img_names_test = None
+        self.img_names_test = []
         self.img_names_train = None
         self.img_names_val = None
         self.mus_test = None
@@ -88,7 +88,7 @@ class Data(Dataset):
         else:
             file = np.load(path)
             data = file['data']
-            self.img_names = file['imgNames']
+            self.img_names = [x for x in os.listdir(f"data/{self.dataset}") if x[-3:]=='txt']
         
         return data
 
@@ -106,7 +106,7 @@ class Data(Dataset):
                 data.append(pixels)
                 names.append(file)
 
-        return np.asarray(data), np.asarray(names)
+        return np.asarray(data, dtype=float), names
 
     def __extractValuesFromFile(self, file):
         aux = open('{}/{}'.format(self.mesh.dir, file),"r")
@@ -139,7 +139,7 @@ class Data(Dataset):
         return data
 
     def __saveDataAsNumpy(self, path, data):
-        np.savez(path, data=data, imgNames=self.imgNames)
+        np.savez(path, data=data)
 
     def __splitDataRandom(self, data):
         val_size = self.split_size/(1-self.split_size)
@@ -151,14 +151,15 @@ class Data(Dataset):
 
     def __splitDataManual(self, data):
         self.mus_test = getTestData(self.manual_data)
-        self.img_names_test, _, _ = self.data_class.getImageNamesFromMus(self.mus_test)
+        img_names_test_ordered, _, _ = self.data_class.getImageNamesFromMus(self.mus_test)
 
         x_test = []
         x_no_test = []
         img_names_no_test = []
         for i, name in enumerate(self.img_names):
-            if name in self.img_names_test:
+            if name in img_names_test_ordered:
                 x_test.append(data[i])
+                self.img_names_test.append(name)
             else:
                 x_no_test.append(data[i])
                 img_names_no_test.append(name)
