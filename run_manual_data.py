@@ -2,14 +2,16 @@ from src.load_data import Data
 from src.arch import Autoencoder
 from src.train import Train
 from src.predict import Predict
+from src.losses import computeErrors
+import matplotlib.pyplot as plt
 
 
 class Input():
     def __init__(self):
         self.dataset = 'beam_homog'
-        self.verbose = True
-        self.plot = True
-        self.save = True
+        self.verbose = False
+        self.plot = False
+        self.save = False
         self.save_dir = 'models/manual_data'
 
         # Data parameters
@@ -62,12 +64,35 @@ def run(args):
 
     pred = Predict(autoencoder, data, args)
 
-    return pred.nn_out[0]
+    return pred.nn_out[0], data
 
 if __name__ == "__main__":
     args = Input()
-    nManualData = 11
+    nManualData = 12
+    data_rng = range(nManualData)
+    e_L1 = [None]*nManualData
+    e_L2 = [None]*nManualData
+    e_infty = [None]*nManualData
 
-    for manual_data in range(1, nManualData+1):
-        args.manual_data = manual_data
-        run(args)
+    for i in data_rng:
+        args.manual_data = i
+        out, data = run(args)
+
+        ref = data.x_test[:,:,:,0]
+        e_L1[i], e_L2[i], e_infty[i] = computeErrors(data.n_test, ref, out)
+    
+    fig, ax = plt.subplots()
+    plt.grid(axis='x', color='0.9')
+    plt.scatter(data_rng, e_L1)
+    plt.scatter(data_rng, e_L2)
+    plt.scatter(data_rng, e_infty)
+    plt.ylabel('|in-out|_Lp / |in|_Lp')
+    plt.xlabel("# manual data case")
+    plt.ylim(0,1)
+    ax.set_xticks(data_rng)
+    ax.set_axisbelow(True)
+    plt.legend(['p = 1', 'p = 2', 'p = infty'], loc='best')
+    plt.show()
+
+
+

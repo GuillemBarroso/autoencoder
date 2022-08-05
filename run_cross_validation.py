@@ -3,7 +3,6 @@ from src.arch import Autoencoder
 from src.train import Train
 from src.predict import Predict
 from src.losses import computeErrors
-import torch
 import matplotlib.pyplot as plt
 
 class Input():
@@ -85,7 +84,7 @@ if __name__ == "__main__":
     
     seeds_rng = range(1, nSeeds+1)
     for seed in seeds_rng:
-        for iMode, mode in enumerate(modes):
+        for mode in modes:
             args.mode = mode
             args.random_seed = seed
             out = validation(data, args)
@@ -111,34 +110,34 @@ if __name__ == "__main__":
     plt.scatter(seeds_rng, e_std_L1)
     plt.scatter(seeds_rng, e_comb_L1)
     plt.scatter(seeds_rng, e_param_L1)
-    plt.title('Relative error L1')
     plt.ylabel('|in-out|_L1 / |in|_L1')
-    plt.xlabel("Dataset's seed")
+    plt.xlabel("# dataset's seed")
+    plt.ylim(0,1)
     ax.set_xticks(seeds_rng)
     ax.set_axisbelow(True)
-    plt.legend(['Standard', 'Combined', 'Parametric'], loc='best')
+    plt.legend(['Standard', 'Combined', 'Parametric'], loc='upper right')
 
     fig, ax = plt.subplots()
     plt.grid(axis='x', color='0.9')
     plt.scatter(seeds_rng, e_std_L2)
     plt.scatter(seeds_rng, e_comb_L2)
     plt.scatter(seeds_rng, e_param_L2)
-    plt.title('Relative error L2')
     plt.ylabel('|in-out|_L2 / |in|_L2')
-    plt.xlabel("Dataset's seed")
+    plt.xlabel("# dataset's seed")
+    plt.ylim(0,1)
     ax.set_xticks(seeds_rng)
     ax.set_axisbelow(True)
-    plt.legend(['Standard', 'Combined', 'Parametric'], loc='best')
+    plt.legend(['Standard', 'Combined', 'Parametric'], loc='upper right')
 
     fig, ax = plt.subplots()
     plt.grid(axis='x', color='0.9')
     plt.scatter(seeds_rng, e_std_infty)
     plt.scatter(seeds_rng, e_comb_infty)
     plt.scatter(seeds_rng, e_param_infty)
-    plt.title('Relative error Linfty')
     plt.ylabel('|in-out|_Linfty / |in|_Linfty')
-    plt.xlabel("Dataset's seed")
+    plt.xlabel("# dataset's seed")
+    plt.ylim(0,1)
     ax.set_xticks(seeds_rng)
     ax.set_axisbelow(True)
-    plt.legend(['Standard', 'Combined', 'Parametric'], loc='best')
+    plt.legend(['Standard', 'Combined', 'Parametric'], loc='lower right')
     plt.show()
