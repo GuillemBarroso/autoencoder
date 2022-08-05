@@ -71,3 +71,17 @@ def computeLosses(out, input, autoencoder, reg, reg_coef, mode, n_train_params, 
     loss.insert(0, loss_tot)
 
     return loss
+
+def computeErrors(n_test, ref, out):
+    rel_e_L1 = 0
+    rel_e_L2 = 0
+    rel_e_infty = 0
+    for i in range(n_test):
+        rel_e_L1 += torch.sum(torch.abs(ref[i]-out[i]))/torch.sum(torch.abs(ref[i]))
+        rel_e_L2 += torch.sum((ref[i]-out[i])**2)/torch.sum((ref[i])**2)
+        rel_e_infty += torch.max(torch.abs(ref[i]-out[i]))/torch.max(torch.abs(ref[i]))
+    rel_e_L1 /= n_test
+    rel_e_L2 /= n_test
+    rel_e_infty /= n_test
+
+    return rel_e_L1, rel_e_L2, rel_e_infty

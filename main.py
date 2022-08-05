@@ -49,7 +49,7 @@ if __name__ == "__main__":
     parser.add_argument('--lr_red_coef','-lr_coef', default=7e-1, type=float, help='learning rate reduction factor')
 
     # Architecture parameters
-    parser.add_argument('--mode','-m', default='combined', type=str, help="autoencoder mode; 'standard', 'combined' and 'parametric' options implemented")
+    parser.add_argument('--mode','-m', default='parametric', type=str, help="autoencoder mode; 'standard', 'combined' and 'parametric' options implemented")
     parser.add_argument('--layers','-l', default=[200, 100, 25], nargs='+', type=int, help="autoencoder's neurons per layer (including code)")
     parser.add_argument('--layers_mu','-l_mu', default=[50, 25], nargs='+', type=int, help="parameter NN's neurons per layer (including code). Only active for mode = 'combined' and mode = 'parametric'" )
     parser.add_argument('--initialisation','-init', default='kaiming_uniform', type=str, help='weight initialisation method')
