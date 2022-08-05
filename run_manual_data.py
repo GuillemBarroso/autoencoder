@@ -68,11 +68,11 @@ def run(args):
 
 if __name__ == "__main__":
     args = Input()
-    nManualData = 12
-    data_rng = range(nManualData)
-    e_L1 = [None]*nManualData
-    e_L2 = [None]*nManualData
-    e_infty = [None]*nManualData
+    n_cases = 12
+    data_rng = range(n_cases)
+    e_L1 = [None]*n_cases
+    e_L2 = [None]*n_cases
+    e_infty = [None]*n_cases
 
     for i in data_rng:
         args.manual_data = i
@@ -81,6 +81,9 @@ if __name__ == "__main__":
         ref = data.x_test[:,:,:,0]
         e_L1[i], e_L2[i], e_infty[i] = computeErrors(data.n_test, ref, out)
     
+    # Load parametric averages from cross validation
+    param_avg = [0.32, 0.15, 0.99]
+
     fig, ax = plt.subplots()
     plt.grid(axis='x', color='0.9')
     plt.scatter(data_rng, e_L1)
@@ -92,6 +95,13 @@ if __name__ == "__main__":
     ax.set_xticks(data_rng)
     ax.set_axisbelow(True)
     plt.legend(['p = 1', 'p = 2', 'p = infty'], loc='best')
+    plt.plot(data_rng, [param_avg[0]]*n_cases, '--r', zorder=0)
+    plt.plot(data_rng, [param_avg[1]]*n_cases, '--r', zorder=0)
+    plt.plot(data_rng, [param_avg[2]]*n_cases, '--r', zorder=0)
+    plt.text(1.1, param_avg[0] + 0.02, f"L1 avg = {param_avg[0]:.2f}", fontsize=9, color='r')
+    plt.text(1.1, param_avg[1] - 0.04, f"L2 avg = {param_avg[1]:.2f}", fontsize=9, color='r')
+    plt.text(1.1, param_avg[2] - 0.04, f"Linfty avg = {param_avg[2]:.2f}", fontsize=9, color='r')
+
     plt.show()
 
 

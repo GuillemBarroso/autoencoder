@@ -4,6 +4,7 @@ from src.train import Train
 from src.predict import Predict
 from src.losses import computeErrors
 import matplotlib.pyplot as plt
+import numpy as np
 
 class Input():
     def __init__(self):
@@ -70,19 +71,19 @@ if __name__ == "__main__":
     data = Data(args)
     ref = data.x_test[:,:,:,0]
 
-    nSeeds = 5
+    n_seeds = 5
     modes = ['standard', 'combined', 'parametric']
-    e_std_L1 = [None]*nSeeds
-    e_std_L2 = [None]*nSeeds
-    e_std_infty = [None]*nSeeds
-    e_comb_L1 = [None]*nSeeds
-    e_comb_L2 = [None]*nSeeds
-    e_comb_infty = [None]*nSeeds
-    e_param_L1 = [None]*nSeeds
-    e_param_L2 = [None]*nSeeds
-    e_param_infty = [None]*nSeeds
+    e_std_L1 = [None]*n_seeds
+    e_std_L2 = [None]*n_seeds
+    e_std_infty = [None]*n_seeds
+    e_comb_L1 = [None]*n_seeds
+    e_comb_L2 = [None]*n_seeds
+    e_comb_infty = [None]*n_seeds
+    e_param_L1 = [None]*n_seeds
+    e_param_L2 = [None]*n_seeds
+    e_param_infty = [None]*n_seeds
     
-    seeds_rng = range(1, nSeeds+1)
+    seeds_rng = range(1, n_seeds+1)
     for seed in seeds_rng:
         for mode in modes:
             args.mode = mode
@@ -104,7 +105,21 @@ if __name__ == "__main__":
                 e_param_L1[seed-1] = e_L1
                 e_param_L2[seed-1] = e_L2
                 e_param_infty[seed-1] = e_infty
-                
+    
+    # Compute average between all seeds
+    e_std_L1_avg = np.average(e_std_L1)
+    e_std_L2_avg = np.average(e_std_L2)
+    e_std_infty_avg = np.average(e_std_infty)
+    e_comb_L1_avg = np.average(e_comb_L1)
+    e_comb_L2_avg = np.average(e_comb_L2)
+    e_comb_infty_avg = np.average(e_comb_infty)
+    e_param_L1_avg = np.average(e_param_L1)
+    e_param_L2_avg = np.average(e_param_L2)
+    e_param_infty_avg = np.average(e_param_infty)
+
+    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+
+    # Plot results
     fig, ax = plt.subplots()
     plt.grid(axis='x', color='0.9')
     plt.scatter(seeds_rng, e_std_L1)
@@ -116,6 +131,12 @@ if __name__ == "__main__":
     ax.set_xticks(seeds_rng)
     ax.set_axisbelow(True)
     plt.legend(['Standard', 'Combined', 'Parametric'], loc='upper right')
+    plt.plot(seeds_rng, [e_std_L1_avg]*n_seeds, '--r', zorder=0)
+    plt.plot(seeds_rng, [e_comb_L1_avg]*n_seeds, '--r', zorder=0)
+    plt.plot(seeds_rng, [e_param_L1_avg]*n_seeds, '--r', zorder=0)
+    plt.text(1.1, e_std_L1_avg + 0.02, f"Standard avg = {e_std_L1_avg:.2f}", fontsize=9, color='r')
+    plt.text(1.1, e_comb_L1_avg - 0.04, f"Combined avg = {e_comb_L1_avg:.2f}", fontsize=9, color='r')
+    plt.text(1.1, e_param_L1_avg + 0.02, f"Parametric avg = {e_param_L1_avg:.2f}", fontsize=9, color='r')
 
     fig, ax = plt.subplots()
     plt.grid(axis='x', color='0.9')
@@ -128,6 +149,12 @@ if __name__ == "__main__":
     ax.set_xticks(seeds_rng)
     ax.set_axisbelow(True)
     plt.legend(['Standard', 'Combined', 'Parametric'], loc='upper right')
+    plt.plot(seeds_rng, [e_std_L2_avg]*n_seeds, '--r', zorder=0)
+    plt.plot(seeds_rng, [e_comb_L2_avg]*n_seeds, '--r', zorder=0)
+    plt.plot(seeds_rng, [e_param_L2_avg]*n_seeds, '--r', zorder=0)
+    plt.text(1.1, e_std_L2_avg + 0.02, f"Standard avg = {e_std_L2_avg:.2f}", fontsize=9, color='r')
+    plt.text(1.1, e_comb_L2_avg - 0.04, f"Combined avg = {e_comb_L2_avg:.2f}", fontsize=9, color='r')
+    plt.text(1.1, e_param_L2_avg + 0.02, f"Parametric avg = {e_param_L2_avg:.2f}", fontsize=9, color='r')
 
     fig, ax = plt.subplots()
     plt.grid(axis='x', color='0.9')
@@ -140,4 +167,11 @@ if __name__ == "__main__":
     ax.set_xticks(seeds_rng)
     ax.set_axisbelow(True)
     plt.legend(['Standard', 'Combined', 'Parametric'], loc='lower right')
+    plt.plot(seeds_rng, [e_std_infty_avg]*n_seeds, '--r', zorder=0)
+    plt.plot(seeds_rng, [e_comb_infty_avg]*n_seeds, '--r', zorder=0)
+    plt.plot(seeds_rng, [e_param_infty_avg]*n_seeds, '--r', zorder=0)
+    plt.text(1.1, e_std_infty_avg - 0.05, f"Standard avg = {e_std_infty_avg:.2f}", fontsize=9, color='r')
+    plt.text(1.1, e_comb_infty_avg - 0.09, f"Combined avg = {e_comb_infty_avg:.2f}", fontsize=9, color='r')
+    plt.text(1.1, e_param_infty_avg - 0.14, f"Parametric avg = {e_param_infty_avg:.2f}", fontsize=9, color='r')
+
     plt.show()
