@@ -37,7 +37,7 @@ class Input():
         self.lr_red_coef = 7e-1
 
         # Architecture parameters
-        self.mode = 'parametric'
+        self.mode = 'standard'
         self.layers = [200, 100, 25]
         self.layers_mu = [50, 25]
         self.initialisation = 'kaiming_uniform'
@@ -69,38 +69,82 @@ def run(args):
 if __name__ == "__main__":
     args = Input()
     n_cases = 12
+    modes = ['standard', 'combined', 'parametric']
     data_rng = range(n_cases)
-    e_L1 = [None]*n_cases
-    e_L2 = [None]*n_cases
-    e_infty = [None]*n_cases
+
+    e_std_L1 = [None]*n_cases
+    e_std_L2 = [None]*n_cases
+    e_std_infty = [None]*n_cases
+    e_comb_L1 = [None]*n_cases
+    e_comb_L2 = [None]*n_cases
+    e_comb_infty = [None]*n_cases
+    e_param_L1 = [None]*n_cases
+    e_param_L2 = [None]*n_cases
+    e_param_infty = [None]*n_cases
 
     for i in data_rng:
-        args.manual_data = i
-        out, data = run(args)
+        for mode in modes:
+            args.mode = mode
+            args.manual_data = i
+            out, data = run(args)
 
-        ref = data.x_test[:,:,:,0]
-        e_L1[i], e_L2[i], e_infty[i] = computeErrors(data.n_test, ref, out)
+            ref = data.x_test[:,:,:,0]
+            e_L1, e_L2, e_infty = computeErrors(data.n_test, ref, out)
+            # Store
+            if mode == 'standard':
+                e_std_L1[i] = e_L1*100
+                e_std_L2[i] = e_L2*100
+                e_std_infty[i] = e_infty*100
+            elif mode == 'combined':
+                e_comb_L1[i] = e_L1*100
+                e_comb_L2[i] = e_L2*100
+                e_comb_infty[i] = e_infty*100
+            elif mode == 'parametric':
+                e_param_L1[i] = e_L1*100
+                e_param_L2[i] = e_L2*100
+                e_param_infty[i] = e_infty*100
     
     # Load parametric averages from cross validation
-    param_avg = [0.32, 0.15, 0.99]
+    std_avg = [9.73, 4.8]
+    comb_avg = [30.97, 14.43]
+    param_avg = [32.12, 15.13]
+
+    # Plot results
+    fig, ax = plt.subplots()
+    plt.grid(axis='x', color='0.9')
+    plt.scatter(data_rng, e_std_L1)
+    plt.scatter(data_rng, e_comb_L1)
+    plt.scatter(data_rng, e_param_L1)
+    plt.ylabel('|in-out|_L1 / |in|_L1 [%]')
+    plt.xlabel("# manual dataset case")
+    plt.ylim(0,80)
+    ax.set_xticks(data_rng)
+    ax.set_axisbelow(True)
+    plt.legend(['Standard', 'Combined', 'Parametric'], loc='upper left')
+    plt.plot(data_rng, [std_avg[0]]*n_cases, '--r', zorder=0)
+    plt.plot(data_rng, [comb_avg[0]]*n_cases, '--r', zorder=0)
+    plt.plot(data_rng, [param_avg[0]]*n_cases, '--r', zorder=0)
+    plt.text(1.1, std_avg[0] + 1, f"Standard avg = {std_avg[0]:.2f}", fontsize=9, color='r')
+    plt.text(1.1, comb_avg[0] - 3, f"Combined avg = {comb_avg[0]:.2f}", fontsize=9, color='r')
+    plt.text(1.1, param_avg[0] + 1, f"Parametric avg = {param_avg[0]:.2f}", fontsize=9, color='r')
 
     fig, ax = plt.subplots()
     plt.grid(axis='x', color='0.9')
-    plt.scatter(data_rng, e_L1)
-    plt.scatter(data_rng, e_L2)
-    plt.scatter(data_rng, e_infty)
-    plt.ylabel('|in-out|_Lp / |in|_Lp')
-    plt.xlabel("# manual data case")
-    plt.ylim(0,1)
+    plt.scatter(data_rng, e_std_L2)
+    plt.scatter(data_rng, e_comb_L2)
+    plt.scatter(data_rng, e_param_L2)
+    plt.ylabel('|in-out|_L2 / |in|_L2 [%]')
+    plt.xlabel("# manual dataset case")
+    plt.ylim(0,80)
     ax.set_xticks(data_rng)
     ax.set_axisbelow(True)
-    plt.legend(['p = 1', 'p = 2', 'p = infty'], loc='best')
-    plt.plot(data_rng, [param_avg[0]]*n_cases, '--r', zorder=0)
+    plt.legend(['Standard', 'Combined', 'Parametric'], loc='upper left')
+    plt.plot(data_rng, [std_avg[1]]*n_cases, '--r', zorder=0)
+    plt.plot(data_rng, [comb_avg[1]]*n_cases, '--r', zorder=0)
     plt.plot(data_rng, [param_avg[1]]*n_cases, '--r', zorder=0)
-    plt.plot(data_rng, [param_avg[2]]*n_cases, '--r', zorder=0)
-    plt.text(1.1, param_avg[0] + 0.02, f"L1 avg = {param_avg[0]:.2f}", fontsize=9, color='r')
-    plt.text(1.1, param_avg[1] - 0.04, f"L2 avg = {param_avg[1]:.2f}", fontsize=9, color='r')
-    plt.text(1.1, param_avg[2] - 0.04, f"Linfty avg = {param_avg[2]:.2f}", fontsize=9, color='r')
+    plt.text(1.1, std_avg[1] + 1, f"Standard avg = {std_avg[1]:.2f}", fontsize=9, color='r')
+    plt.text(1.1, comb_avg[1] - 3, f"Combined avg = {comb_avg[1]:.2f}", fontsize=9, color='r')
+    plt.text(1.1, param_avg[1] + 1, f"Parametric avg = {param_avg[1]:.2f}", fontsize=9, color='r')
 
     plt.show()
 
