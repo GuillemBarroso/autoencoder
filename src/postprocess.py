@@ -1,18 +1,19 @@
-import matplotlib.pyplot as plt
-import torch
-import pandas as pd
 import dataframe_image as dfi
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import torch
 
 
 def reshape(x, size):
     return torch.reshape(x, size)
 
-def summaryInfo(data, name, verbose):
+def summaryInfo(data, name, verbose, save_fig):
     df = pd.DataFrame(data, columns=['Parameter', 'Value'])
     if verbose:
         print(df)
-    dfi.export(df, name)
+    if save_fig:
+        dfi.export(df, name)
 
 def plotImage(data, nRows, n_disp, count):
         ax = plt.subplot(nRows, n_disp, count)
@@ -38,9 +39,13 @@ def codeInfo(code):
             avg_code_mag = np.true_divide(abs(avg).sum(),(avg!=0).sum())
             return zero_code_flag, code_size, avg_code_mag
 
-def plotting(input, out, img_names, zero_code, data_class, mode, name):
-    
+def plotting(input, out, img_names, zero_code, args):
     n_disp = len(input)
+    data_class = args.data_class
+    mode = args.mode
+    name = args.name
+    fig_path = args.fig_path
+    save_fig = args.save_fig
 
     if mode == 'combined':
         X_nn = out[0]
@@ -84,8 +89,9 @@ def plotting(input, out, img_names, zero_code, data_class, mode, name):
             plotImage(code[i], nRows, n_disp, i+1+n_disp)
             plotZeroCode(len(code.data[0]), zero_code[0], 'red')
             plotImage(X_nn[i], nRows, n_disp, i+1+2*n_disp)
-        
-    savePlot(f'predictsPlot_{name}.png')
+    
+    if save_fig:
+        savePlot(f'{fig_path}/predictsPlot_{name}.png')
 
 def addPlotNames(plotNames):
     for i, plotName in enumerate(reversed(plotNames)):
@@ -107,13 +113,8 @@ def plotTraining(epochs, hist):
     plt.ylabel('log(loss)')
     plt.title('Training and validation losses')
 
-    # lims = ax.get_ylim()
-    # if lims[1] > 0.5:
-    #     limsPlot = [lims[0], 0.5]
-    # else:
-    #     limsPlot = lims
-    # ax.set_ylim(limsPlot)
-    savePlot(f'trainPlot_{hist.autoencoder.name}.png')
+    if hist.save_fig:
+        savePlot(f'{hist.fig_path}/trainPlot_{hist.autoencoder.name}.png')
 
     if hist.autoencoder.param_activation:
         plt.figure()
@@ -123,10 +124,12 @@ def plotTraining(epochs, hist):
         plt.ylabel('alpha')
         plt.xlabel('epoch')
         plt.legend(['alpha ReLu', 'alpha Sigmoid'], loc='upper right')
-        savePlot(f'alphasPlot_{hist.autoencoder.name}.png')
+        
+        if hist.save_fig:
+            savePlot(f'{hist.fig_dir}/alphasPlot_{hist.autoencoder.name}.png')
 
 def savePlot(name):
-    plt.savefig('results/{}'.format(name))
+    plt.savefig(name)
 
 def plotShow():
     plt.show()
@@ -140,10 +143,10 @@ def storeLossInfo(losses, lossStore):
         for i, loss in enumerate(losses):
             lossStore[i].append(loss.item())
 
-def getModelName(mode, dataset, random_test_data, random_seed, manual_data, epochs,
+def getModelName(mode, random_test_data, random_seed, manual_data, epochs,
                  reg, reg_coef, code_coef, layers, layers_mu):
 
-    name = f"{mode}_{dataset}"
+    name = f"{mode}"
     if random_test_data:
         name += f"_seed{random_seed}"
     else:

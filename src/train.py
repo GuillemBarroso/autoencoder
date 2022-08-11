@@ -1,6 +1,8 @@
+import os
+import timeit
 import torch
 from torch.utils.data import DataLoader
-import timeit
+
 from src.postprocess import plotTraining, summaryInfo, addLossesToList, storeLossInfo, reshape
 from src.losses import computeLosses
 
@@ -11,6 +13,9 @@ class Train(object):
         self.x_val = data.x_val
         self.mus_train = data.mus_train
         self.mus_val = data.mus_val
+        self.fig_path = data.fig_path
+        self.name = data.name
+        self.fig_path = data.fig_path
         self.dataset = args.dataset
         self.random_test_data = args.random_test_data
         self.random_seed = args.random_seed
@@ -36,8 +41,8 @@ class Train(object):
         self.mode = args.mode
         self.code_size = args.layers[-1]
         self.code_coef = args.code_coef
-        self.save = args.save
-        self.save_dir = args.save_dir
+        self.save_model = args.save_model
+        self.save_fig = args.save_fig
         self.alphas = [[], []]
         self.best_loss_val = None
         self.stop_training = None
@@ -46,7 +51,9 @@ class Train(object):
         self.loss_prev_best = self.early_stop_tol*1e15
         self.n_train_params = autoencoder.n_train_params
         self.n_biases = autoencoder.n_biases
-        self.name = autoencoder.name
+        self.model_path = f'{args.model_dir}/{args.dataset}'
+        if not os.path.exists(self.model_path):
+            os.makedirs(self.model_path)
 
         # Load arch information depending on the autoencoder's mode
         self.autoencoder = autoencoder
@@ -73,15 +80,15 @@ class Train(object):
         # Training
         try:
             if self.mode == 'standard':
-                autoencoder.encoder.load_state_dict(torch.load(f"{self.save_dir}/encoder_{self.name}"))
-                autoencoder.decoder.load_state_dict(torch.load(f"{self.save_dir}/decoder_{self.name}"))
+                autoencoder.encoder.load_state_dict(torch.load(f"{self.model_path}/encoder_{self.name}"))
+                autoencoder.decoder.load_state_dict(torch.load(f"{self.model_path}/decoder_{self.name}"))
             elif self.mode == 'combined':
-                autoencoder.encoder.load_state_dict(torch.load(f"{self.save_dir}/encoder_{self.name}"))
-                autoencoder.decoder.load_state_dict(torch.load(f"{self.save_dir}/decoder_{self.name}"))
-                autoencoder.parameter.load_state_dict(torch.load(f"{self.save_dir}/parameter_{self.name}"))
+                autoencoder.encoder.load_state_dict(torch.load(f"{self.model_path}/encoder_{self.name}"))
+                autoencoder.decoder.load_state_dict(torch.load(f"{self.model_path}/decoder_{self.name}"))
+                autoencoder.parameter.load_state_dict(torch.load(f"{self.model_path}/parameter_{self.name}"))
             elif self.mode == 'parametric':
-                autoencoder.decoder.load_state_dict(torch.load(f"{self.save_dir}/decoder_{self.name}"))
-                autoencoder.parameter.load_state_dict(torch.load(f"{self.save_dir}/parameter_{self.name}"))
+                autoencoder.decoder.load_state_dict(torch.load(f"{self.model_path}/decoder_{self.name}"))
+                autoencoder.parameter.load_state_dict(torch.load(f"{self.model_path}/parameter_{self.name}"))
             print("Existing model loaded. Training skipped.")
 
         except FileNotFoundError:
@@ -89,15 +96,24 @@ class Train(object):
             self.train()
 
             # Save model
-            if self.save:
-                for model in self.autoencoder.models:
-                    if model:
-                        save_path = f"{self.save_dir}/{model.name}_{self.name}"
-                        torch.save(model.state_dict(), save_path)
+            if self.save_model:
+                if self.mode == 'standard':
+                    torch.save(self.autoencoder.encoder.state_dict(), f"{self.model_path}/encoder_{self.name}")
+                    torch.save(self.autoencoder.decoder.state_dict(), f"{self.model_path}/decoder_{self.name}")
+                elif self.mode == 'combined':
+                    torch.save(self.autoencoder.encoder.state_dict(), f"{self.model_path}/encoder_{self.name}")
+                    torch.save(self.autoencoder.decoder.state_dict(), f"{self.model_path}/decoder_{self.name}")
+                    torch.save(self.autoencoder.parameter.state_dict(), f"{self.model_path}/parameter_{self.name}")
+                elif self.mode == 'parametric':
+                    torch.save(self.autoencoder.decoder.state_dict(), f"{self.model_path}/decoder_{self.name}")
+                    torch.save(self.autoencoder.parameter.state_dict(), f"{self.model_path}/parameter_{self.name}")
+                elif self.mode == 'staggered':
+                    torch.save(self.autoencoder.parameter.state_dict(), f"{self.model_path}/parameter_{self.name}")
+                print("Existing model loaded. Training skipped.")
 
     def train(self):
         def __summary():
-            name = f'results/trainTable_{self.name}.png'
+            name = f'{self.fig_path}/trainTable_{self.name}.png'
             data = [['epochs', self.epochs],
                 ['batch size', self.batch_size],
                 ['early stop patience', '{} epochs'.format(self.early_stop_patience)],
@@ -123,7 +139,7 @@ class Train(object):
 
             data = addLossesToList(self.loss_train, 'train', self.autoencoder.loss_names, data)
             data = addLossesToList(self.loss_val, 'val', self.autoencoder.loss_names, data)
-            summaryInfo(data, name, self.verbose)
+            summaryInfo(data, name, self.verbose, self.save_fig)
 
         start = timeit.default_timer()
         for e in range(self.epochs):

@@ -1,18 +1,21 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
 from src.load_data import Data
 from src.arch import Autoencoder
 from src.train import Train
 from src.predict import Predict
 from src.losses import computeErrors
-import matplotlib.pyplot as plt
-import numpy as np
 
 class Input():
     def __init__(self):
         self.dataset = 'beam_homog'
         self.verbose = False
         self.plot = False
-        self.save = False
-        self.save_dir = 'models/cross_validation'
+        self.save_model = False
+        self.save_fig = False
+        self.model_dir = 'models/cross_validation'
+        self.fig_dir = 'figures/cross_validation'
 
         # Data parameters
         self.random_test_data = True
@@ -55,7 +58,9 @@ class Input():
         self.n_disp = 6
 
 
-def validation(data, args):
+def validation(args):
+    # Load data
+    data = Data(args)
 
     # Create autoencoder and load saved models
     autoencoder = Autoencoder(data, args)
@@ -63,13 +68,11 @@ def validation(data, args):
 
     pred = Predict(autoencoder, data, args)
 
-    return pred.nn_out[0]
+    return pred.nn_out[0], data
 
 if __name__ == "__main__":
 
     args = Input()
-    data = Data(args)
-    ref = data.x_test[:,:,:,0]
 
     n_seeds = 5
     modes = ['standard', 'combined', 'parametric']
@@ -86,11 +89,12 @@ if __name__ == "__main__":
     seeds_rng = range(1, n_seeds+1)
     for seed in seeds_rng:
         for mode in modes:
+            print(f'n_case: {seed}/{n_seeds}, mode: {mode}')
             args.mode = mode
             args.random_seed = seed
-            out = validation(data, args)
+            out, data = validation(args)
 
-            e_L1, e_L2, e_infty = computeErrors(data.n_test, ref, out)
+            e_L1, e_L2, e_infty = computeErrors(data.n_test, data.x_test[:,:,:,0], out)
 
             # Store
             if mode == 'standard':
@@ -135,6 +139,7 @@ if __name__ == "__main__":
     plt.text(1.1, e_std_L1_avg + 1, f"Standard avg = {e_std_L1_avg:.2f}", fontsize=9, color='r')
     plt.text(1.1, e_comb_L1_avg - 2, f"Combined avg = {e_comb_L1_avg:.2f}", fontsize=9, color='r')
     plt.text(1.1, e_param_L1_avg + 1, f"Parametric avg = {e_param_L1_avg:.2f}", fontsize=9, color='r')
+    plt.savefig(f'{data.fig_path}/L1_{data.name}.png')
 
     fig, ax = plt.subplots()
     plt.grid(axis='x', color='0.9')
@@ -153,5 +158,6 @@ if __name__ == "__main__":
     plt.text(1.1, e_std_L2_avg + 1, f"Standard avg = {e_std_L2_avg:.2f}", fontsize=9, color='r')
     plt.text(1.1, e_comb_L2_avg - 2, f"Combined avg = {e_comb_L2_avg:.2f}", fontsize=9, color='r')
     plt.text(1.1, e_param_L2_avg + 1, f"Parametric avg = {e_param_L2_avg:.2f}", fontsize=9, color='r')
+    plt.savefig(f'{data.fig_path}/L1_{data.name}.png')
 
     plt.show()

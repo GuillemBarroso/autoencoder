@@ -1,7 +1,8 @@
+import numpy as np
 import torch
+
 from src.losses import computeLosses
 from src.postprocess import storeLossInfo, summaryInfo, plotting, plotShow, reshape, addLossesToList, codeInfo
-import numpy as np
 
 
 class Predict(object):
@@ -12,6 +13,8 @@ class Predict(object):
         self.resolution = data.resolution
         self.img_names_test = data.img_names_test
         self.data_class = data.data_class
+        self.fig_path = data.fig_path
+        self.name = data.name
         self.n_train_params = autoencoder.n_train_params
         self.n_biases = autoencoder.n_biases
         self.reg = args.reg
@@ -19,6 +22,7 @@ class Predict(object):
         self.bias_coef = args.bias_coef
         self.bias_ord = args.bias_ord
         self.code_size = args.layers[-1]
+        self.save_fig = args.save_fig
         if args.n_disp > len(self.x_test): args.n_disp = len(self.x_test)
         self.n_disp = args.n_disp
         self.verbose = args.verbose
@@ -30,7 +34,6 @@ class Predict(object):
         self.encoder = autoencoder.encoder
         self.decoder = autoencoder.decoder
         self.parameter = autoencoder.parameter
-        self.name = autoencoder.name
 
         self.loss_test = [[] for x in range(len(self.autoencoder.loss_names))]
         self.zero_code_flag = None
@@ -47,7 +50,7 @@ class Predict(object):
 
     def evaluate(self):
         def __summary():
-            name = f"results/evaluationTable_{self.name}.png"
+            name = f"{self.fig_path}/evaluationTable_{self.name}.png"
             data = [
             ['code nn size/max size', '{}/{}'.format(self.active_code_size, self.code_size)],
             ['avg pixel magnitude nn', '{:.2}'.format(self.avg_code_mag)],
@@ -57,7 +60,7 @@ class Predict(object):
                 data.append(['avg pixel magnitude mu', '{:.2}'.format(self.avg_code_mag_mu)])
 
             data = addLossesToList(self.loss_test, 'test', self.autoencoder.loss_names, data)
-            summaryInfo(data, name, self.verbose)
+            summaryInfo(data, name, self.verbose, self.save_fig)
 
         with torch.no_grad():
             if self.mode == 'combined':
@@ -115,7 +118,7 @@ class Predict(object):
         
         __summary()
         if self.plot:
-            plotting(x_test, out, img_test, zero_code, self.data_class, self.mode, self.name)
+            plotting(x_test, out, img_test, zero_code, self)
             plotShow()
 
         

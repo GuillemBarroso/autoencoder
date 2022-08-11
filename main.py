@@ -1,4 +1,5 @@
 import argparse
+
 from src.load_data import Data
 from src.train import Train
 from src.predict import Predict
@@ -20,20 +21,22 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Autoencoder for image compression')
 
     # General parameters
-    parser.add_argument('--dataset', '-d', default='beam_homog', type=str, help='name of the dataset')
+    parser.add_argument('--dataset', '-d', default='ellipse2', type=str, help='name of the dataset')
     parser.add_argument('--verbose', '-vrb', default=True, type=bool, help='display information on command window')
     parser.add_argument('--plot', '-plt', default=True, type=bool, help='plot training and predictions in figures and save pngs')
-    parser.add_argument('--save', '-s', default=True, type=bool, help="save autoencoder's model")
-    parser.add_argument('--save_dir', '-s_dir', default='models', type=str, help='directory of the saved model. Only active if save = True')
+    parser.add_argument('--save_model', '-s_model', default=True, type=bool, help="save autoencoder's model")
+    parser.add_argument('--save_fig', '-s_fig', default=True, type=bool, help="save code output's figures")
+    parser.add_argument('--model_dir', '-s_dir', default='models', type=str, help='directory of the saved model. Only active if save = True')
+    parser.add_argument('--fig_dir', '-f_dir', default='figures', type=str, help='directory of the saved figures. Only active if save = True')
 
     # Data parameters
-    parser.add_argument('--random_test_data', '-rnd_data', default=False, type=bool, help="test data selected randomly (using 'split_size'). If False, it will be loaded from 'test_data.py'")
+    parser.add_argument('--random_test_data', '-rnd_data', default=True, type=bool, help="test data selected randomly (using 'split_size'). If False, it will be loaded from 'test_data.py'")
     parser.add_argument('--random_seed', '-rnd_seed', default=5, type=int, help="random seed for reproducible results. Only active if random_test_data = True")
     parser.add_argument('--manual_data', '-manual_data', default=0, type=int, help="test dataset number loaded from 'test_data.py'. Only active if random_test_data = False")
     parser.add_argument('--split_size', '-split_size', default=0.1, type=float, help='test and validation splitting percentage (from 0 to 1) from total dataset. If random_test_data = False, only applies to validation')
     
     # Training parameters
-    parser.add_argument('--epochs', '-e', default=1, type=int, help='number of training epochs')
+    parser.add_argument('--epochs', '-e', default=2, type=int, help='number of training epochs')
     parser.add_argument('--batch_size', '-bs', default=600, type=int, help='batch size')
     parser.add_argument('--learning_rate', '-lr', default=1e-3, type=float, help='training learning rate')
     parser.add_argument('--reg', '-reg', default=True, type=bool, help='if True, adds a regularisation term in the loss function')

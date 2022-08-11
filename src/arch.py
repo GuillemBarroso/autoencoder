@@ -1,17 +1,18 @@
 import torch
-from torchsummary import summary
 from torch import nn
 import torch.nn.functional as F
 import torch.nn.init as init
+
 from src.param_act_func import param_sigmoid, param_relu
-from src.postprocess import summaryInfo, getModelName
+from src.postprocess import summaryInfo
 
 class Autoencoder():
     def __init__(self, data, args):
-        # super(Autoencoder, self).__init__()
         self.resolution = data.resolution
         self.resolution_mu = data.resolution_mu
         self.n_mus = data.n_mus
+        self.name = data.name
+        self.fig_path = data.fig_path
         self.layers = args.layers
         self.layers_mu = args.layers_mu
         self.dropout = args.dropout
@@ -22,6 +23,7 @@ class Autoencoder():
         self.initialisation = args.initialisation
         self.mode = args.mode
         self.verbose = args.verbose
+        self.save_fig = args.save_fig
         self.param_activation = False
 
         # Add input layer with image resolution as dimensions
@@ -68,8 +70,6 @@ class Autoencoder():
 
         self.models = [self.encoder, self.decoder, self.parameter]
         self.n_train_params, self.n_biases  = self.__count_params()
-        self.name = getModelName(self.mode, args.dataset, args.random_test_data, args.random_seed,args.manual_data,
-            args.epochs, args.reg, args.reg_coef, args.code_coef, self.layers, self.layers_mu)
         self.__summary()
 
     def __count_params(self):
@@ -90,7 +90,7 @@ class Autoencoder():
 
 
     def __summary(self):
-        name = f'results/archTable_{self.name}.png'
+        name = f'{self.fig_path}/archTable_{self.name}.png'
         data = [['autoencoder mode', self.mode],
             ['encoder/decoder layers', self.layers],
             ['num train params', self.n_train_params],
@@ -112,7 +112,7 @@ class Autoencoder():
         if self.dropout:
             data.append(['dropout prob', self.dropout_prob])
         
-        summaryInfo(data, name, self.verbose)
+        summaryInfo(data, name, self.verbose, self.save_fig)
 
     def layersLoop(self, x, layers, activations):
             for i, layer in enumerate(layers):
@@ -161,7 +161,6 @@ class Autoencoder():
             self.autoencoder = autoencoder
             self.name = 'encoder'
             self.build()
-            # summary(self, self.autoencoder.resolution)
 
         def build(self):
             # Encoder
@@ -198,7 +197,6 @@ class Autoencoder():
             self.autoencoder = autoencoder
             self.name = 'decoder'
             self.build()
-            # summary(self, (1,torch.tensor(self.autoencoder.layers[-1])))
 
         def build(self):
             # Decoder
@@ -232,7 +230,6 @@ class Autoencoder():
             self.autoencoder = autoencoder
             self.name = 'parameter'
             self.build()
-            # summary(self, self.autoencoder.resolution_mu)
 
         def build(self):
             # Parameter
@@ -253,40 +250,3 @@ class Autoencoder():
 
         def forward(self, x):
             return self.param(x)
-
-
-class Test():
-    def __init__(self, autoencoder):
-        # super(Encoder, self).__init__(data, args)
-        self.autoencoder = autoencoder
-        self.build()
-        # summary(self, self.autoencoder.resolution)
-
-    def build(self):
-        # Encoder
-        self.encoder = nn.ModuleList()
-        self.activation_encoder = []
-        self.encoder.append(nn.Flatten())
-        self.activation_encoder.append('linear')
-        if self.autoencoder.dropout:
-            self.encoder.append(nn.Dropout(p=self.autoencoder.dropout_prob))
-            self.activation_encoder.append('linear')
-        # Encoder hidden layers
-        for k in range(self.autoencoder.steps-1):
-            self.encoder.append(nn.Linear(self.autoencoder.layers[k], self.autoencoder.layers[k+1]))
-            self.activation_encoder.append(self.autoencoder.act_hid)
-            if self.autoencoder.dropout:
-                self.encoder.append(nn.Dropout(p=self.autoencoder.dropout_prob))
-                self.activation_encoder.append('linear')
-        # Code
-        self.encoder.append(nn.Linear(self.autoencoder.layers[-2], self.autoencoder.layers[-1]))
-        self.activation_encoder.append(self.autoencoder.act_code)
-
-        # Weight initialisation  
-        self.autoencoder.weight_init(self.encoder)
-
-    def encode(self, x):
-        return self.autoencoder.layersLoop(x, self.encoder, self.activation_encoder)
-
-    def forward(self, x):
-        return self.encode(x)

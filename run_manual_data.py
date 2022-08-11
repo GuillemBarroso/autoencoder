@@ -1,9 +1,10 @@
+import matplotlib.pyplot as plt
+
 from src.load_data import Data
 from src.arch import Autoencoder
 from src.train import Train
 from src.predict import Predict
 from src.losses import computeErrors
-import matplotlib.pyplot as plt
 
 
 class Input():
@@ -11,8 +12,10 @@ class Input():
         self.dataset = 'beam_homog'
         self.verbose = False
         self.plot = False
-        self.save = False
-        self.save_dir = 'models/manual_data'
+        self.save_model = False
+        self.save_fig = False
+        self.model_dir = f'models/manual_data'
+        self.fig_dir = f'figures/manual_data'
 
         # Data parameters
         self.random_test_data = False
@@ -84,6 +87,7 @@ if __name__ == "__main__":
 
     for i in data_rng:
         for mode in modes:
+            print(f'n_case: {i}/{n_cases}, mode: {mode}')
             args.mode = mode
             args.manual_data = i
             out, data = run(args)
@@ -103,7 +107,7 @@ if __name__ == "__main__":
                 e_param_L1[i] = e_L1*100
                 e_param_L2[i] = e_L2*100
                 e_param_infty[i] = e_infty*100
-    
+
     # Load parametric averages from cross validation
     std_avg = [9.73, 4.8]
     comb_avg = [30.97, 14.43]
@@ -127,6 +131,7 @@ if __name__ == "__main__":
     plt.text(1.1, std_avg[0] + 1, f"Standard avg = {std_avg[0]:.2f}", fontsize=9, color='r')
     plt.text(1.1, comb_avg[0] - 3, f"Combined avg = {comb_avg[0]:.2f}", fontsize=9, color='r')
     plt.text(1.1, param_avg[0] + 1, f"Parametric avg = {param_avg[0]:.2f}", fontsize=9, color='r')
+    plt.savefig(f'{data.fig_path}/L1_{data.name}.png')
 
     fig, ax = plt.subplots()
     plt.grid(axis='x', color='0.9')
@@ -146,7 +151,9 @@ if __name__ == "__main__":
     plt.text(1.1, comb_avg[1] - 3, f"Combined avg = {comb_avg[1]:.2f}", fontsize=9, color='r')
     plt.text(1.1, param_avg[1] + 1, f"Parametric avg = {param_avg[1]:.2f}", fontsize=9, color='r')
 
+    plt.savefig(f'{data.fig_path}/L2_{data.name}.png')
     plt.show()
+
 
 
 

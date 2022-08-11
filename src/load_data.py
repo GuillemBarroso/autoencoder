@@ -1,12 +1,13 @@
-from torch.utils.data import Dataset
-import os
 import numpy as np
+import os
+from torch.utils.data import Dataset
 import torch
+
 from sklearn.model_selection import train_test_split
 from src.test_data import getTestData
 from src.beam_homog_naming import BeamHomog
 from src.ellipse_naming import Ellipse
-from src.postprocess import summaryInfo
+from src.postprocess import summaryInfo, getModelName
 
 
 class Data(Dataset):
@@ -40,6 +41,14 @@ class Data(Dataset):
         self.split_size = args.split_size
         self.verbose = args.verbose
         self.plot = args.plot
+        self.save_fig = args.save_fig
+        self.fig_path = f'{args.fig_dir}/{args.dataset}'
+        if not os.path.exists(self.fig_path):
+            os.makedirs(self.fig_path)
+
+        self.name = getModelName(args.mode, args.random_test_data, args.random_seed, 
+                                 args.manual_data, args.epochs, args.reg, args.reg_coef,
+                                 args.code_coef, args.layers, args.layers_mu)
 
         data = self.__getData()
 
@@ -64,7 +73,7 @@ class Data(Dataset):
         return self.x_train[idx]
 
     def __summary(self):
-        name = 'results/dataTable.png'
+        name = f'{self.fig_path}/dataTable_{self.name}.png'
         data = [
             ['dataset', self.dataset],
             ['random test data', self.random_test_data],
@@ -75,7 +84,7 @@ class Data(Dataset):
             ['image resolution', self.resolution],
             ['image scale', self.scale],
         ]
-        summaryInfo(data, name, self.verbose)
+        summaryInfo(data, name, self.verbose, self.save_fig)
 
     def __getData(self):
         if not self.dataset in self.implemented_data: raise NotImplementedError
