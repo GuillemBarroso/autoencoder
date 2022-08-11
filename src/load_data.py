@@ -88,7 +88,10 @@ class Data(Dataset):
         else:
             file = np.load(path)
             data = file['data']
-            self.img_names = [x for x in os.listdir(f"data/{self.dataset}") if x[-3:]=='txt']
+            if self.dataset == 'ellipse' or self.dataset == 'ellipse2':
+                self.img_names = file['imgNames']
+            else:
+                self.img_names = [x for x in os.listdir(f"data/{self.dataset}") if x[-3:]=='txt']
         
         return data
 
