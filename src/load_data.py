@@ -63,7 +63,7 @@ class Data(Dataset):
         self.__storeDataForTraining(x_train, x_val, x_test)
         self.__getTestImageParams()
         if self.plot:
-            self.data_class.plotDataset(self.mus_test_ext)
+            self.data_class.plotDataset(self.mus_test_ext, self.fig_path, self.name)
         self.__summary()
 
     def __len__(self):

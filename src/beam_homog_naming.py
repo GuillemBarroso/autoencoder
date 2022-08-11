@@ -320,7 +320,7 @@ class BeamHomog():
                     testData.append(name)
             return testData, mu1_ext, mu2_ext
 
-    def plotDataset(self, mus_test_ext):
+    def plotDataset(self, mus_test_ext, fig_path, name):
         mu1, mu2, mu1_ext, mu2_ext = self.getMuDomain()
         mu1_test = mus_test_ext[0]
         mu2_test = mus_test_ext[1]
@@ -333,4 +333,4 @@ class BeamHomog():
         ax.set_yticks(mu2)
         plt.xlabel("mu_1 (position)")
         plt.ylabel("mu_2 (angle in º)")
-        savePlot('datasetPlot.png')
+        savePlot(f'{fig_path}/datasetPlot_{name}.png')

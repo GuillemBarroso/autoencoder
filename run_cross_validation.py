@@ -158,6 +158,6 @@ if __name__ == "__main__":
     plt.text(1.1, e_std_L2_avg + 1, f"Standard avg = {e_std_L2_avg:.2f}", fontsize=9, color='r')
     plt.text(1.1, e_comb_L2_avg - 2, f"Combined avg = {e_comb_L2_avg:.2f}", fontsize=9, color='r')
     plt.text(1.1, e_param_L2_avg + 1, f"Parametric avg = {e_param_L2_avg:.2f}", fontsize=9, color='r')
-    plt.savefig(f'{data.fig_path}/L1_{data.name}.png')
+    plt.savefig(f'{data.fig_path}/L2_{data.name}.png')
 
     plt.show()

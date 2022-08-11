@@ -13,7 +13,7 @@ class Ellipse():
     def getMuDomain(self):
             return np.linspace(self.domain[0], self.domain[1], 2700)
 
-    def plotDataset(self, mus_test_ext):
+    def plotDataset(self, mus_test_ext, fig_path, name):
         mu = self.getMuDomain()
         mu_test = mus_test_ext[0]
 
@@ -22,4 +22,4 @@ class Ellipse():
         ax.scatter(mu, np.zeros(len(mu)), color='blue')
         ax.scatter(mu_test, np.zeros(len(mu_test)), color='red')
         plt.xlabel("mu = a/b (elipse ratio)")
-        savePlot('datasetPlot.png')
+        savePlot(f'{fig_path}/datasetPlot_{name}.png')
