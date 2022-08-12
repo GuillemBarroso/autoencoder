@@ -114,7 +114,10 @@ def plotTraining(epochs, hist):
     plt.title('Training and validation losses')
 
     if hist.save_fig:
-        savePlot(f'{hist.fig_path}/trainPlot_{hist.autoencoder.name}.png')
+        if hist.mode == 'staggered':
+            savePlot(f'{hist.fig_path}/trainPlot_2{hist.autoencoder.name}.png')
+        else:
+            savePlot(f'{hist.fig_path}/trainPlot_{hist.autoencoder.name}.png')
 
     if hist.autoencoder.param_activation:
         plt.figure()

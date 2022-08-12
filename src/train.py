@@ -61,34 +61,47 @@ class Train(object):
         self.decoder = autoencoder.decoder
         self.parameter = autoencoder.parameter
 
-        self.optim_decoder, self.scheduler = self.__initialiseModel(self.decoder)
-
         self.idx_early_stop = self.autoencoder.idx_early_stop
         self.loss_train = [[] for x in range(len(self.autoencoder.loss_names))]
         self.loss_val = [[] for x in range(len(self.autoencoder.loss_names))]
 
-        if self.mode == 'standard' or self.mode == 'combined':
-            self.optim_encoder, self.scheduler = self.__initialiseModel(self.encoder)
-
-        if self.mode == 'combined' or self.mode == 'parametric':
-            self.optim_param, self.scheduler = self.__initialiseModel(self.parameter)
-
         # Use DataLoaders for batch training
-        self.x_loader = DataLoader(self.x_train, batch_size=self.batch_size, shuffle=False)
+        if self.mode == 'staggered_code':
+            self.x_loader = DataLoader(  CODE    , batch_size=self.batch_size, shuffle=False)
+        else:
+            self.x_loader = DataLoader(self.x_train, batch_size=self.batch_size, shuffle=False)
         self.mus_loader = DataLoader(self.mus_train, batch_size=self.batch_size, shuffle=False)
         
         # Training
         try:
             if self.mode == 'standard':
+                # initialise models first. This will be executed even if model is not found before training
+                self.optim_encoder, self.scheduler = self.__initialiseModel(self.encoder)
+                self.optim_decoder, self.scheduler = self.__initialiseModel(self.decoder)
+                # load
                 autoencoder.encoder.load_state_dict(torch.load(f"{self.model_path}/encoder_{self.name}"))
                 autoencoder.decoder.load_state_dict(torch.load(f"{self.model_path}/decoder_{self.name}"))
             elif self.mode == 'combined':
+                # initialise
+                self.optim_encoder, self.scheduler = self.__initialiseModel(self.encoder)
+                self.optim_decoder, self.scheduler = self.__initialiseModel(self.decoder)
+                self.optim_param, self.scheduler = self.__initialiseModel(self.parameter)
+                # load
                 autoencoder.encoder.load_state_dict(torch.load(f"{self.model_path}/encoder_{self.name}"))
                 autoencoder.decoder.load_state_dict(torch.load(f"{self.model_path}/decoder_{self.name}"))
                 autoencoder.parameter.load_state_dict(torch.load(f"{self.model_path}/parameter_{self.name}"))
             elif self.mode == 'parametric':
+                # initialise
+                self.optim_decoder, self.scheduler = self.__initialiseModel(self.decoder)
+                self.optim_param, self.scheduler = self.__initialiseModel(self.parameter)
+                # load
                 autoencoder.decoder.load_state_dict(torch.load(f"{self.model_path}/decoder_{self.name}"))
                 autoencoder.parameter.load_state_dict(torch.load(f"{self.model_path}/parameter_{self.name}"))
+            elif 'staggered' in self.mode:
+                # initialise
+                self.optim_param, self.scheduler = self.__initialiseModel(self.parameter)
+                # load
+                self.autoencoder.parameter.load_state_dict(torch.load(f"{self.model_path}/parameter_{self.name}"))
             print("Existing model loaded. Training skipped.")
 
         except FileNotFoundError:
@@ -107,13 +120,17 @@ class Train(object):
                 elif self.mode == 'parametric':
                     torch.save(self.autoencoder.decoder.state_dict(), f"{self.model_path}/decoder_{self.name}")
                     torch.save(self.autoencoder.parameter.state_dict(), f"{self.model_path}/parameter_{self.name}")
-                elif self.mode == 'staggered':
+                elif 'staggered' in self.mode:
                     torch.save(self.autoencoder.parameter.state_dict(), f"{self.model_path}/parameter_{self.name}")
-                print("Existing model loaded. Training skipped.")
+                print(f"Model {self.mode} has been corretly saved")
 
     def train(self):
         def __summary():
-            name = f'{self.fig_path}/trainTable_{self.name}.png'
+            if 'staggered' in self.mode:
+                name = f'{self.fig_path}/trainTable_2{self.name}.png'
+            else:
+                name = f'{self.fig_path}/trainTable_{self.name}.png'
+
             data = [['epochs', self.epochs],
                 ['batch size', self.batch_size],
                 ['early stop patience', '{} epochs'.format(self.early_stop_patience)],
@@ -157,26 +174,14 @@ class Train(object):
 
     def __trainEpoch(self):
         for X, mus in zip(self.x_loader, self.mus_loader):
-
+            # Evaluate loss for batch
             loss = self.__evaluate(X, mus)
-            
-            # Set grads to zero
-            self.optim_decoder.zero_grad()
-            if self.mode == 'standard' or self.mode == 'combined':
-                self.optim_encoder.zero_grad()
-            if self.mode == 'combined' or self.mode == 'parametric':
-                self.optim_param.zero_grad()
-
-            # Backward for the total loss (first entry in loss list)
+            # Reset gradients at every batch
+            self.__resetGrads()
+            # Compute gradients with backward for the total loss = loss[0]
             loss[0].backward()
-
             # Update models' weights
-            self.optim_decoder.step()
-            if self.mode == 'standard' or self.mode == 'combined':
-                self.optim_encoder.step()
-            if self.mode == 'combined' or self.mode == 'parametric':
-                self.optim_param.step()
-            self.scheduler.step()
+            self.__updateWeights()
 
             if self.verbose:
                 self.__printTrainInfo(loss)
@@ -189,7 +194,11 @@ class Train(object):
 
     def __valEpoch(self):
         with torch.no_grad():
-            loss = self.__evaluate(self.x_val.data, self.mus_val)
+            if self.mode == 'staggered_code':
+                loss = self.__evaluate(   CODE    , self.mus_val)
+            else:
+                loss = self.__evaluate(self.x_val.data, self.mus_val)
+                
         storeLossInfo(loss, self.loss_val)
 
         if self.verbose:
@@ -208,6 +217,11 @@ class Train(object):
         elif self.mode == 'parametric':
             code = self.parameter(mus)
             out = [self.decoder(code)]
+        elif self.mode == 'staggered_img':
+            code = self.parameter(mus)
+            out = [self.decoder(code)]
+        elif self.mode == 'staggered_code':
+            out = [self.parameter(mus)]
         else: 
             raise NotImplementedError
 
@@ -240,3 +254,25 @@ class Train(object):
         optim = torch.optim.Adam(model.parameters())
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optim, milestones=self.lr_epoch_milestone, gamma=self.lr_red_coef)
         return optim, scheduler
+
+    def __resetGrads(self):
+        # Set grads to zero
+        if self.mode == 'standard' or self.mode == 'combined':
+            self.optim_decoder.zero_grad()
+            self.optim_encoder.zero_grad()
+        if self.mode == 'combined' or self.mode == 'parametric':
+            self.optim_decoder.zero_grad()
+            self.optim_param.zero_grad()
+        if 'staggered' in self.mode:
+            self.optim_param.zero_grad()
+
+    def __updateWeights(self):
+        if self.mode == 'standard' or self.mode == 'combined':
+            self.optim_decoder.step()
+            self.optim_encoder.step()
+        if self.mode == 'combined' or self.mode == 'parametric':
+            self.optim_decoder.step()
+            self.optim_param.step()
+        if 'staggered' in self.mode:
+            self.optim_param.step()
+        self.scheduler.step()

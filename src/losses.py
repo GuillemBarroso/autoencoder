@@ -1,10 +1,12 @@
 import torch
+import numpy as np
+
 
 def computeLosses(out, input, autoencoder, reg, reg_coef, mode, n_train_params, n_biases, code_coef, bias_ord, bias_coef):
     loss = []
+    img_size = np.prod(input.shape[1:])
 
     # image loss
-    img_size = input.shape[1]*input.shape[2]
     X_nn = torch.reshape(out[0], input.shape)
     loss_image_nn = torch.mean((X_nn-input)**2) 
     loss.append(loss_image_nn)
@@ -37,14 +39,6 @@ def computeLosses(out, input, autoencoder, reg, reg_coef, mode, n_train_params, 
     # add L1 regularisation term to loss 
     if reg:
         loss_reg_opt = torch.sum(torch.abs(params)) * reg_coef * img_size / n_train_params
-
-        # loss_reg = torch.tensor([0.0], requires_grad=True, dtype=torch.float64)
-        # for model in autoencoder:
-        #     if model:
-        #         loss_reg = loss_reg + sum(p.abs().sum() for p in model.parameters()) * reg_coef * img_size / n_train_params
-
-        # print('loss_reg    ', loss_reg.item())
-        # print('loss_reg_opt', loss_reg_opt.item())
         loss.append(loss_reg_opt)
     
     # add bias ordering term to loss through Moreau-Yosida-like regularisation
@@ -52,17 +46,6 @@ def computeLosses(out, input, autoencoder, reg, reg_coef, mode, n_train_params, 
         loss_bias_opt = biases_shift-biases
         loss_bias_opt[loss_bias_opt>0] = 0
         loss_bias_opt = torch.sum(torch.pow(loss_bias_opt, 2.0)) * bias_coef * img_size / n_biases
-
-        # loss_bias = torch.tensor([0.0], requires_grad=True, dtype=torch.float64)
-        # for model in autoencoder:
-        #     if model:
-        #         for name, param in model.named_parameters():
-        #             if 'bias' in name:
-        #                 for i in range(len(param)-1):
-        #                     loss_bias = loss_bias + torch.pow(torch.min(torch.tensor([param[i+1]-param[i], 0.0])), 2.0) * bias_coef * img_size / n_biases
-
-        # print('loss_bias    ', loss_bias.item())
-        # print('loss_bias_opt', loss_bias_opt.item())
         loss.append(loss_bias_opt)
 
     # Compute total loss to be optimised and place as the 0th entry of loss list

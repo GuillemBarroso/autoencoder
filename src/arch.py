@@ -37,6 +37,9 @@ class Autoencoder():
         elif self.mode == 'combined':
             self.loss_names = ['total loss', 'image nn loss', 'image mu loss', 'code loss']
             self.idx_early_stop = 2
+        elif 'staggered' in self.mode:
+            self.loss_names = ['total loss', 'image loss']  # TODO: change if we compute code loss instead of image loss
+            self.idx_early_stop = 1
         else:
             raise NotImplementedError
 
@@ -57,7 +60,7 @@ class Autoencoder():
             self.encoder = self.Encoder(self).to(torch.double)
             self.decoder = self.Decoder(self).to(torch.double)
             self.parameter = None
-        elif self.mode == 'combined':
+        elif self.mode == 'combined' or 'staggered' in self.mode:
             self.encoder = self.Encoder(self).to(torch.double)
             self.decoder = self.Decoder(self).to(torch.double)
             self.parameter = self.Parameter(self).to(torch.double)
@@ -95,7 +98,7 @@ class Autoencoder():
             ['encoder/decoder layers', self.layers],
             ['num train params', self.n_train_params],
             ['num biases', self.n_biases]]
-        if self.mode == 'combined' or self.mode == 'parametric':
+        if self.mode == 'combined' or self.mode == 'parametric' or 'staggered' in self.mode:
             data.append(['parametric layers', self.layers_mu])
         
         data = data + [

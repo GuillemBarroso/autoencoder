@@ -1,4 +1,5 @@
 import argparse
+from enum import auto
 
 from src.load_data import Data
 from src.train import Train
@@ -9,11 +10,24 @@ def main(args):
     # Load data
     data = Data(args)
 
-    # Create autoencoder
+    # Create model
     autoencoder = Autoencoder(data, args)
 
-    # Train and predict
-    Train(autoencoder, data, args)
+    # Train model
+    if not 'staggered' in args.mode:
+        # Single training step for all modes that are not staggered
+        Train(autoencoder, data, args)
+    else:
+        # Two-step training for staggered; i) train standard model
+        mode_old = args.mode 
+        args.mode = 'standard'
+        Train(autoencoder, data, args)
+
+        # ii) parametric training
+        args.mode = mode_old
+        Train(autoencoder, data, args)
+
+    # Use model to make predictions on test dataset
     Predict(autoencoder, data, args)
 
 
@@ -24,19 +38,19 @@ if __name__ == "__main__":
     parser.add_argument('--dataset', '-d', default='ellipse2', type=str, help='name of the dataset')
     parser.add_argument('--verbose', '-vrb', default=True, type=bool, help='display information on command window')
     parser.add_argument('--plot', '-plt', default=True, type=bool, help='plot training and predictions in figures and save pngs')
-    parser.add_argument('--save_model', '-s_model', default=True, type=bool, help="save autoencoder's model")
-    parser.add_argument('--save_fig', '-s_fig', default=True, type=bool, help="save code output's figures")
+    parser.add_argument('--save_model', '-s_model', default=False, type=bool, help="save autoencoder's model")
+    parser.add_argument('--save_fig', '-s_fig', default=False, type=bool, help="save code output's figures")
     parser.add_argument('--model_dir', '-s_dir', default='models', type=str, help='directory of the saved model. Only active if save = True')
     parser.add_argument('--fig_dir', '-f_dir', default='figures', type=str, help='directory of the saved figures. Only active if save = True')
 
     # Data parameters
     parser.add_argument('--random_test_data', '-rnd_data', default=True, type=bool, help="test data selected randomly (using 'split_size'). If False, it will be loaded from 'test_data.py'")
-    parser.add_argument('--random_seed', '-rnd_seed', default=5, type=int, help="random seed for reproducible results. Only active if random_test_data = True")
+    parser.add_argument('--random_seed', '-rnd_seed', default=0, type=int, help="random seed for reproducible results. Only active if random_test_data = True")
     parser.add_argument('--manual_data', '-manual_data', default=0, type=int, help="test dataset number loaded from 'test_data.py'. Only active if random_test_data = False")
     parser.add_argument('--split_size', '-split_size', default=0.1, type=float, help='test and validation splitting percentage (from 0 to 1) from total dataset. If random_test_data = False, only applies to validation')
     
     # Training parameters
-    parser.add_argument('--epochs', '-e', default=2, type=int, help='number of training epochs')
+    parser.add_argument('--epochs', '-e', default=500, type=int, help='number of training epochs')
     parser.add_argument('--batch_size', '-bs', default=600, type=int, help='batch size')
     parser.add_argument('--learning_rate', '-lr', default=1e-3, type=float, help='training learning rate')
     parser.add_argument('--reg', '-reg', default=True, type=bool, help='if True, adds a regularisation term in the loss function')
@@ -52,7 +66,7 @@ if __name__ == "__main__":
     parser.add_argument('--lr_red_coef','-lr_coef', default=7e-1, type=float, help='learning rate reduction factor')
 
     # Architecture parameters
-    parser.add_argument('--mode','-m', default='parametric', type=str, help="autoencoder mode; 'standard', 'combined' and 'parametric' options implemented")
+    parser.add_argument('--mode','-m', default='staggered_img', type=str, help="autoencoder mode; 'standard', 'combined', 'parametric' and 'staggered' options implemented")
     parser.add_argument('--layers','-l', default=[200, 100, 25], nargs='+', type=int, help="autoencoder's neurons per layer (including code)")
     parser.add_argument('--layers_mu','-l_mu', default=[50, 25], nargs='+', type=int, help="parameter NN's neurons per layer (including code). Only active for mode = 'combined' and mode = 'parametric'" )
     parser.add_argument('--initialisation','-init', default='kaiming_uniform', type=str, help='weight initialisation method')

@@ -85,7 +85,7 @@ class Predict(object):
                 code_nn = reshape(code_nn, self.code_dim)
                 X_nn = reshape(X_nn, self.img_dim)
                 out = [X_nn, code_nn]
-            elif self.mode == 'parametric':
+            elif self.mode == 'parametric' or 'staggered' in self.mode:
                 code_nn = self.parameter(self.mus_test.data)
                 X_nn = self.decoder(code_nn)
 
