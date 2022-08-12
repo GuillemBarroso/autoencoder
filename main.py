@@ -25,6 +25,11 @@ def main(args):
 
         # ii) parametric training
         args.mode = mode_old
+        if args.mode == 'staggered_code':
+            # Get code data for training and validation datasets
+            data.code_train = autoencoder.encoder(data.x_train)
+            data.code_val = autoencoder.encoder(data.x_val)
+        # Train 
         Train(autoencoder, data, args)
 
     # Use model to make predictions on test dataset
@@ -38,8 +43,8 @@ if __name__ == "__main__":
     parser.add_argument('--dataset', '-d', default='ellipse2', type=str, help='name of the dataset')
     parser.add_argument('--verbose', '-vrb', default=True, type=bool, help='display information on command window')
     parser.add_argument('--plot', '-plt', default=True, type=bool, help='plot training and predictions in figures and save pngs')
-    parser.add_argument('--save_model', '-s_model', default=False, type=bool, help="save autoencoder's model")
-    parser.add_argument('--save_fig', '-s_fig', default=False, type=bool, help="save code output's figures")
+    parser.add_argument('--save_model', '-s_model', default=True, type=bool, help="save autoencoder's model")
+    parser.add_argument('--save_fig', '-s_fig', default=True, type=bool, help="save code output's figures")
     parser.add_argument('--model_dir', '-s_dir', default='models', type=str, help='directory of the saved model. Only active if save = True')
     parser.add_argument('--fig_dir', '-f_dir', default='figures', type=str, help='directory of the saved figures. Only active if save = True')
 
@@ -62,11 +67,11 @@ if __name__ == "__main__":
     parser.add_argument('--early_stop_patience', '-es_pat', default=500, type=int, help='number of epochs that the early stopping criteria will wait before stopping training')
     parser.add_argument('--early_stop_tol', '-es_tol', default=0.1, type=float, help='relative tolerance (%) for the early stopping criteria')
     
-    parser.add_argument('--lr_epoch_milestone', '-lr_e', default=[5000], nargs='+', type=int, help='list of epochs in which learning rate will be decreased')
+    parser.add_argument('--lr_epoch_milestone', '-lr_e', default=[100], nargs='+', type=int, help='list of epochs in which learning rate will be decreased')
     parser.add_argument('--lr_red_coef','-lr_coef', default=7e-1, type=float, help='learning rate reduction factor')
 
     # Architecture parameters
-    parser.add_argument('--mode','-m', default='staggered_img', type=str, help="autoencoder mode; 'standard', 'combined', 'parametric' and 'staggered' options implemented")
+    parser.add_argument('--mode','-m', default='staggered_img', type=str, help="autoencoder mode; 'standard', 'combined', 'parametric', 'staggered_img' and 'staggered_code' options implemented")
     parser.add_argument('--layers','-l', default=[200, 100, 25], nargs='+', type=int, help="autoencoder's neurons per layer (including code)")
     parser.add_argument('--layers_mu','-l_mu', default=[50, 25], nargs='+', type=int, help="parameter NN's neurons per layer (including code). Only active for mode = 'combined' and mode = 'parametric'" )
     parser.add_argument('--initialisation','-init', default='kaiming_uniform', type=str, help='weight initialisation method')

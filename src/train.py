@@ -67,7 +67,10 @@ class Train(object):
 
         # Use DataLoaders for batch training
         if self.mode == 'staggered_code':
-            self.x_loader = DataLoader(  CODE    , batch_size=self.batch_size, shuffle=False)
+            # Load code data comming from standard autoencoder
+            self.code_train = data.code_train
+            self.code_val = data.code_val
+            self.x_loader = DataLoader(self.code_train, batch_size=self.batch_size, shuffle=False)
         else:
             self.x_loader = DataLoader(self.x_train, batch_size=self.batch_size, shuffle=False)
         self.mus_loader = DataLoader(self.mus_train, batch_size=self.batch_size, shuffle=False)
@@ -179,7 +182,7 @@ class Train(object):
             # Reset gradients at every batch
             self.__resetGrads()
             # Compute gradients with backward for the total loss = loss[0]
-            loss[0].backward()
+            loss[0].backward(retain_graph = True)
             # Update models' weights
             self.__updateWeights()
 
@@ -195,10 +198,10 @@ class Train(object):
     def __valEpoch(self):
         with torch.no_grad():
             if self.mode == 'staggered_code':
-                loss = self.__evaluate(   CODE    , self.mus_val)
+                loss = self.__evaluate(self.code_val, self.mus_val)
             else:
                 loss = self.__evaluate(self.x_val.data, self.mus_val)
-                
+
         storeLossInfo(loss, self.loss_val)
 
         if self.verbose:

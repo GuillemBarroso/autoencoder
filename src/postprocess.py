@@ -114,7 +114,7 @@ def plotTraining(epochs, hist):
     plt.title('Training and validation losses')
 
     if hist.save_fig:
-        if hist.mode == 'staggered':
+        if 'staggered' in hist.mode:
             savePlot(f'{hist.fig_path}/trainPlot_2{hist.autoencoder.name}.png')
         else:
             savePlot(f'{hist.fig_path}/trainPlot_{hist.autoencoder.name}.png')
@@ -175,5 +175,12 @@ def getModelName(mode, random_test_data, random_seed, manual_data, epochs,
             name += f"_{x}"
         name += f"_archD"
         for x in layers[::-1]:
+            name += f"_{x}"
+    elif 'staggered' in mode:
+        name += f"_archED"
+        for x in layers:
+            name += f"_{x}"
+        name += f"_archP"
+        for x in layers_mu:
             name += f"_{x}"
     return name
