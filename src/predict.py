@@ -2,7 +2,7 @@ import numpy as np
 import torch
 
 from src.losses import computeLosses
-from src.postprocess import storeLossInfo, summaryInfo, plotting, plotShow, reshape, addLossesToList, codeInfo
+from src.postprocess import storeLossInfo, summaryInfo, plotting, reshape, addLossesToList, codeInfo
 
 
 class Predict(object):
@@ -119,6 +119,5 @@ class Predict(object):
         __summary()
         if self.plot:
             plotting(x_test, out, img_test, zero_code, self)
-            plotShow()
 
         
