@@ -33,10 +33,12 @@ def main(args):
         Train(autoencoder, data, args)
 
     # Use model to make predictions on test dataset
-    Predict(autoencoder, data, args)
+    pred = Predict(autoencoder, data, args)
 
     if args.plot_show:
         plotShow()
+    
+    return pred.nn_out[0], data
 
 
 if __name__ == "__main__":
@@ -75,7 +77,7 @@ if __name__ == "__main__":
     parser.add_argument('--lr_red_coef','-lr_coef', default=7e-1, type=float, help='learning rate reduction factor')
 
     # Architecture parameters
-    parser.add_argument('--mode','-m', default='combined', type=str, help="autoencoder mode; 'standard', 'combined', 'parametric', 'staggered_img' and 'staggered_code' options implemented")
+    parser.add_argument('--mode','-m', default='staggered_img', type=str, help="autoencoder mode; 'standard', 'combined', 'parametric', 'staggered_img' and 'staggered_code' options implemented")
     parser.add_argument('--layers','-l', default=[200, 100, 25], nargs='+', type=int, help="autoencoder's neurons per layer (including code)")
     parser.add_argument('--layers_mu','-l_mu', default=[200, 200, 200, 25], nargs='+', type=int, help="parameter NN's neurons per layer (including code). Only active for mode = 'combined' and mode = 'parametric'" )
     parser.add_argument('--initialisation','-init', default='kaiming_uniform', type=str, help='weight initialisation method')

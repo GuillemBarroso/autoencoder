@@ -1,10 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.load_data import Data
-from src.arch import Autoencoder
-from src.train import Train
-from src.predict import Predict
+from main import main
 from src.losses import computeErrors
 
 class Input():
@@ -12,7 +9,7 @@ class Input():
         self.dataset = 'beam_homog'
         self.verbose = True
         self.plot = True
-        self.save_model = False
+        self.plot_show = False
         self.save_model = True
         self.save_fig = True
         self.model_dir = 'models/cross_validation'
@@ -25,7 +22,7 @@ class Input():
         self.manual_data = 0
 
         # Training parameters
-        self.epochs = 5000
+        self.epochs = 2
         self.batch_size = 600
         self.learning_rate = 1e-3
         self.reg = True
@@ -58,19 +55,6 @@ class Input():
         # Display parameters
         self.n_disp = 6
 
-
-def validation(args):
-    # Load data
-    data = Data(args)
-
-    # Create autoencoder and load saved models
-    autoencoder = Autoencoder(data, args)
-    Train(autoencoder, data, args)
-
-    pred = Predict(autoencoder, data, args)
-
-    return pred.nn_out[0], data
-
 if __name__ == "__main__":
 
     args = Input()
@@ -94,7 +78,7 @@ if __name__ == "__main__":
             print(f'n_case: {seed}/{n_seeds}, mode: {mode}')
             args.mode = mode
             args.random_seed = seed
-            out, data = validation(args)
+            out, data = main(args)
 
             e_L1, e_L2, _ = computeErrors(data.n_test, data.x_test[:,:,:,0], out)
 
