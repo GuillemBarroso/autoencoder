@@ -3,7 +3,7 @@ import timeit
 import torch
 from torch.utils.data import DataLoader
 
-from src.postprocess import plotTraining, summaryInfo, addLossesToList, storeLossInfo, reshape
+from src.postprocess import plotTraining, summaryInfo, addLossesToList, storeLossInfo, reshape, getModelName
 from src.losses import computeLosses
 
 
@@ -78,6 +78,10 @@ class Train(object):
         # Training
         try:
             if self.mode == 'standard':
+                # Update name variable to load (if exists) the first training stage of staggered_xx method
+                self.name = getModelName(self.mode, self.random_test_data, self.random_seed, 
+                                self.manual_data, self.epochs, self.reg, self.reg_coef,
+                                self.code_coef, self.layers, self.layers_mu)
                 # initialise models first. This will be executed even if model is not found before training
                 self.optim_encoder, self.scheduler = self.__initialiseModel(self.encoder)
                 self.optim_decoder, self.scheduler = self.__initialiseModel(self.decoder)
@@ -101,6 +105,10 @@ class Train(object):
                 autoencoder.decoder.load_state_dict(torch.load(f"{self.model_path}/decoder_{self.name}"))
                 autoencoder.parameter.load_state_dict(torch.load(f"{self.model_path}/parameter_{self.name}"))
             elif 'staggered' in self.mode:
+                # update name for second stage of staggered_xx method
+                self.name = getModelName(self.mode, self.random_test_data, self.random_seed, 
+                                self.manual_data, self.epochs, self.reg, self.reg_coef,
+                                self.code_coef, self.layers, self.layers_mu)
                 # initialise
                 self.optim_param, self.scheduler = self.__initialiseModel(self.parameter)
                 # load
