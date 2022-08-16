@@ -151,8 +151,9 @@ class Autoencoder():
         elif activation == 'sigmoid': x = torch.sigmoid(x)
         elif activation == 'relu': x = F.relu(x)
         elif activation == 'rrelu': x = F.rrelu(x)
-        elif activation == 'tanh': x = torch.tanh(x)
+        elif activation == 'tanh': x = torch.tanh(x) + 1
         elif activation == 'elu': x = F.elu(x)
+        elif activation == 'prelu': x = torch.prelu(x, weight=torch.Tensor([0.1]).double())
         elif activation == 'param_sigmoid': x = self.param_sigmoid(x)
         elif activation == 'param_relu': x = self.param_relu(x)
         else: raise NotImplementedError
