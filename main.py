@@ -12,7 +12,7 @@ def main(args):
 
     # Create model
     autoencoder = Autoencoder(data, args)
-
+    args.reg_coef = 1e-4
     # Train model
     if not 'staggered' in args.mode:
         # Single training step for all modes that are not staggered
@@ -26,9 +26,12 @@ def main(args):
         # ii) parametric training
         args.mode = mode_old
         if args.mode == 'staggered_code':
+            # args.reg_coef = 1e1
+            args.reg_coef = 1e1
             # Get code data for training and validation datasets
             data.code_train = autoencoder.encoder(data.x_train)
             data.code_val = autoencoder.encoder(data.x_val)
+
         # Train 
         Train(autoencoder, data, args)
 
@@ -77,13 +80,13 @@ if __name__ == "__main__":
     parser.add_argument('--lr_red_coef','-lr_coef', default=7e-1, type=float, help='learning rate reduction factor')
 
     # Architecture parameters
-    parser.add_argument('--mode','-m', default='staggered_img', type=str, help="autoencoder mode; 'standard', 'combined', 'parametric', 'staggered_img' and 'staggered_code' options implemented")
+    parser.add_argument('--mode','-m', default='staggered_code', type=str, help="autoencoder mode; 'standard', 'combined', 'parametric', 'staggered_img' and 'staggered_code' options implemented")
     parser.add_argument('--layers','-l', default=[200, 100, 25], nargs='+', type=int, help="autoencoder's neurons per layer (including code)")
     parser.add_argument('--layers_mu','-l_mu', default=[200, 200, 200, 25], nargs='+', type=int, help="parameter NN's neurons per layer (including code). Only active for mode = 'combined' and mode = 'parametric'" )
     parser.add_argument('--initialisation','-init', default='kaiming_uniform', type=str, help='weight initialisation method')
     
-    parser.add_argument('--act_code','-act_code', default='relu', type=str, help="activaction function in encoder's last layer (code or latent space)")
-    parser.add_argument('--act_hid','-act_hid', default='relu', type=str, help="activaction function in autoencoder's hidden layers")
+    parser.add_argument('--act_code','-act_code', default='tanh', type=str, help="activaction function in encoder's last layer (code or latent space)")
+    parser.add_argument('--act_hid','-act_hid', default='prelu', type=str, help="activaction function in autoencoder's hidden layers")
     parser.add_argument('--act_out','-act_out', default='sigmoid', type=str, help="activaction function in decoders's last layer (final output)")
     parser.add_argument('--alpha_relu','-a_relu', default=0.5, type=float, help="initial value for the parameter of the relu activaction function. Only active if any activation function = 'param_relu")
     parser.add_argument('--alpha_sigmoid','-a_sigmoid', default=0.5, type=float, help="initial value for the parameter of the sigmoid activaction function. Only active if any activation function = 'param_sigmoid")

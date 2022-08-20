@@ -158,7 +158,7 @@ if __name__ == "__main__":
     plt.scatter(seeds_rng, e_stag_code_L2)
     plt.ylabel('|in-out|_L2 / |in|_L2 [%]')
     plt.xlabel("# dataset's seed")
-    plt.ylim(0,120)
+    plt.ylim(0,80)
     ax.set_xticks(seeds_rng)
     ax.set_axisbelow(True)
     plt.legend(['Standard', 'Combined', 'Parametric', 'Staggered img', 'Staggered code'], loc='upper right')
