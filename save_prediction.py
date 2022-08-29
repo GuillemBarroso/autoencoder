@@ -3,7 +3,7 @@ import numpy as np
 
 from main import main
 from src.postprocess import plotImage
-
+from src.beam_homog_naming import BeamHomog
 
 class Input():
     def __init__(self):
@@ -65,7 +65,13 @@ def getImageIndex(mus, mus_test):
 
 if __name__ == "__main__":
     # Define test image to be saved
-    mus = [2.7, 54]
+    mus = [2.2, 36]
+    Fh, Fv, loc, pos = BeamHomog().getParamsFromMus(mus[0],mus[1])
+
+    print(f"f1 = {Fh}")
+    print(f"f2 = {Fv}")
+    print(f"loc = {loc}")
+    print(f"pos = {pos}")
 
     # Load model and get predicitons
     args = Input()
@@ -116,7 +122,7 @@ if __name__ == "__main__":
     plt.show()
 
     # Store prediciton in txt file to be loaded in FreeFEM++
-    file_name = 'test_1.txt'
+    file_name = f"outputs_txt/mu1_{mus[0]}_mu2_{mus[1]}.txt"
     file = open(file_name, "w")
     file.write(f"{len(triang_vals)} \n")
     file.write(f"\t")

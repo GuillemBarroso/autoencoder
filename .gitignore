@@ -9,3 +9,4 @@ figures*
 results*
 data/*
 !data/beam_homog_test
+outputs_txt/*
