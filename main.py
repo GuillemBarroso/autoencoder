@@ -48,7 +48,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Autoencoder for image compression')
 
     # General parameters
-    parser.add_argument('--dataset', '-d', default='ellipse2', type=str, help='name of the dataset')
+    parser.add_argument('--dataset', '-d', default='beam_homog', type=str, help='name of the dataset')
     parser.add_argument('--verbose', '-vrb', default=True, type=bool, help='display information on command window')
     parser.add_argument('--plot', '-plt', default=True, type=bool, help='plot training and predictions in figures')
     parser.add_argument('--plot_show', '-plt_show', default=True, type=bool, help='if true, shows the plots on screen')
