@@ -96,17 +96,34 @@ if __name__ == "__main__":
             else: # node inisde the domain
                 nodal_vals[i, j] = (out[idx][i,j] + out[idx][i, j-1] + out[idx][i-1,j] + out[idx][i-1, j-1])/4
 
-    # Plot input image and NN's output (pixel and nodal values)
-    plt.figure()
-    plotImage(data.x_test[idx], 3, 1, 1)
-    plotImage(out[idx], 3, 1, 2)
-    plotImage(nodal_vals, 3, 1, 3)
+    # Get one value per trinangular element
+    triang_vals = []
+    for j in range(data.resolution[1]):
+        for i in range(data.resolution[0]):
+            triang_vals.append(out[idx][i,j])
+            triang_vals.append(out[idx][i,j])
+
+    assert len(triang_vals) == data.dimension*2, 'triang_vals shape does not match the correct number'
+
+    triang_vals_plt = np.reshape(triang_vals, [data.resolution[0]*2, data.resolution[1]], order='F')
+
+    # Plot input image and NN's output (pixel, nodal values and triangular vals)
+    plt.subplots(gridspec_kw={'width_ratios': [1], 'height_ratios': [1]})
+    plotImage(data.x_test[idx], 4, 1, 1)
+    plotImage(out[idx], 4, 1, 2)
+    plotImage(nodal_vals, 4, 1, 3)
+    plotImage(triang_vals_plt, 4, 1, 4)
     plt.show()
 
     # Store prediciton in txt file to be loaded in FreeFEM++
-    file_name = 'test.txt'
+    file_name = 'test_1.txt'
     file = open(file_name, "w")
-    out_list = np.reshape(nodal_vals, np.prod(nodal_vals.shape))
-    for i in out_list:
-        file.write(f"{i} \t")
+    file.write(f"{len(triang_vals)} \n")
+    file.write(f"\t")
+    count = 1
+    for val in triang_vals:
+        file.write(f"{val} \t")
+        if count % 5 == 0:
+            file.write("\n\t")
+        count += 1
     file.close()
